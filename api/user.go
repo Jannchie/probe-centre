@@ -1,15 +1,39 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/Jannchie/pyobe-carrier/db"
 	"github.com/Jannchie/pyobe-carrier/model"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // CreateUser is the callback function that create a user.
 func CreateUser(c *gin.Context) {
-	u := &model.User{Name: "Jannchie"}
-	db.DB.Create(u)
+	user := model.User{}
+	if err := c.ShouldBind(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": -1,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	var count int64
+	if db.DB.Model(&user).Where("mail = ?", user.Mail).Count(&count); count != 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": -1,
+			"msg":  "Mail already been used.",
+		})
+		return
+	}
+	uuid, _ := uuid.NewUUID()
+	user.Token = uuid.String()
+	db.DB.Create(&user)
+	c.JSON(http.StatusOK, gin.H{
+		"code": 1,
+		"msg":  "success",
+	})
 }
 
 // UserForm is the form of user
