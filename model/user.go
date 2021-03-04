@@ -5,5 +5,5 @@ type User struct {
 	BaseModel
 	Name  string `form:"Name"`
 	Mail  string `form:"Mail"`
-	Token string
+	Token string `gorm:"index"`
 }

@@ -36,16 +36,21 @@ func CreateUser(c *gin.Context) {
 	})
 }
 
-// UserForm is the form of user
-type UserForm struct {
+// UserFormID is the form of user by ID.
+type UserFormID struct {
 	ID uint `form:"ID" binding:"required"`
+}
+
+// UserFormToken is the form of user by token.
+type UserFormToken struct {
+	Token string `form:"Token" binding:"required"`
 }
 
 // ListUser is the callback function that returns list of users.
 func ListUser(c *gin.Context) {
-	var u UserForm
+	var u []model.User
 	if c.ShouldBindQuery(&u) == nil {
-		res := db.DB.Find(&model.User{}, u.ID)
+		res := db.DB.Find(&model.User{}).Limit(10)
 		c.JSON(200, res)
 	} else {
 		c.JSON(400, gin.H{
@@ -54,9 +59,14 @@ func ListUser(c *gin.Context) {
 	}
 }
 
-// GetUser is the callback function that returns the user.
-func GetUser(c *gin.Context) {
-	var u UserForm
+// RefreshToken is the callback function that refresh user token.
+func RefreshToken(c *gin.Context) {
+
+}
+
+// GetUserByID is the callback function that returns the user.
+func GetUserByID(c *gin.Context) {
+	var u UserFormID
 	if err := c.ShouldBindQuery(&u); err != nil {
 		c.JSON(400, gin.H{
 			"code": -1,
@@ -66,6 +76,27 @@ func GetUser(c *gin.Context) {
 	}
 	user := model.User{}
 	db.DB.First(&user, u.ID)
+	c.JSON(200, user)
+}
+
+// GetUserByToken is the callback function that returns the user by token.
+func GetUserByToken(c *gin.Context) {
+	var u UserFormToken
+	if err := c.ShouldBindQuery(&u); err != nil {
+		c.JSON(400, gin.H{
+			"code": -1,
+			"msg":  err.Error(),
+		})
+		return
+	}
+	user := model.User{}
+	if res := db.DB.First(&user, "token = ?", u.Token); res.Error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": -1,
+			"msg":  res.Error.Error(),
+		})
+		return
+	}
 	c.JSON(200, user)
 }
 

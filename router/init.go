@@ -12,6 +12,6 @@ func InitRouter() *gin.Engine {
 	r.POST("/stat", api.PostStat)
 	r.POST("/user", api.CreateUser)
 	r.PUT("/user", api.UpdateUser)
-	r.GET("/user", api.GetUser)
+	r.GET("/user", api.GetUserByToken)
 	return r
 }
