@@ -121,3 +121,9 @@ func UpdateUser(c *gin.Context) {
 	db.DB.Model(&user).Where("id", u.ID).Updates(model.User{Name: u.Name, Mail: u.Mail})
 	c.JSON(200, gin.H{"code": 1, "msg": "success"})
 }
+
+// GetMe is the callback function to get user's information.
+func GetMe(c *gin.Context) {
+	user, _ := c.Get("user")
+	c.JSON(http.StatusOK, user)
+}
