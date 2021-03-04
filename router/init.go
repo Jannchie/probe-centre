@@ -44,6 +44,7 @@ func InitRouter() *gin.Engine {
 	user.Use(AuthRequired)
 	{
 		user.GET("/me", api.GetMe)
+		user.PUT("/token", api.RefreshToken)
 	}
 	return r
 }

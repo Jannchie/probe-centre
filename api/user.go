@@ -59,11 +59,6 @@ func ListUser(c *gin.Context) {
 	}
 }
 
-// RefreshToken is the callback function that refresh user token.
-func RefreshToken(c *gin.Context) {
-
-}
-
 // GetUserByID is the callback function that returns the user.
 func GetUserByID(c *gin.Context) {
 	var u UserFormID
@@ -126,4 +121,13 @@ func UpdateUser(c *gin.Context) {
 func GetMe(c *gin.Context) {
 	user, _ := c.Get("user")
 	c.JSON(http.StatusOK, user)
+}
+
+// RefreshToken is the callback function that refresh user token.
+func RefreshToken(c *gin.Context) {
+	token := c.Request.Header.Get("token")
+	var user model.User
+	uuid, _ := uuid.NewUUID()
+	db.DB.Model(&user).Where("token = ?", token).Update("token", uuid.String())
+	c.JSON(http.StatusOK, gin.H{"code": 1, "data": user.Token, "msg": "success"})
 }
