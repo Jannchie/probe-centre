@@ -8,7 +8,7 @@ import (
 
 // BaseModel is the base settings of the model.
 type BaseModel struct {
-	ID        uint           `gorm:"primarykey"`
+	ID        uint64         `gorm:"primarykey"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 	CreatedAt time.Time
 	UpdatedAt time.Time

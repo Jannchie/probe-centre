@@ -36,7 +36,6 @@ func AuthRequired(c *gin.Context) {
 func InitRouter() *gin.Engine {
 	r := gin.Default()
 	r.GET("/ping", api.Ping)
-	r.POST("/stat", api.PostStat)
 	r.POST("/user", api.CreateUser)
 	r.GET("/user", api.GetUserByToken)
 	r.GET("/token", api.Login)
@@ -48,5 +47,7 @@ func InitRouter() *gin.Engine {
 		user.GET("/me", api.GetMe)
 		user.PUT("/token", api.RefreshToken)
 	}
+
+	r.Use(AuthRequired).POST("/stat", api.PostStat)
 	return r
 }
