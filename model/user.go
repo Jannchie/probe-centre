@@ -3,8 +3,9 @@ package model
 // User is the user of this system.
 type User struct {
 	BaseModel
-	Name     string `form:"Name"`
-	Mail     string `form:"Mail"`
-	Token    string `gorm:"index"`
-	Password string `form:"Password"`
+	Name  string
+	Mail  string `gorm:"index"`
+	Token string `gorm:"index"`
+	Key   []byte `json:"-"`
+	Salt  []byte `json:"-"`
 }

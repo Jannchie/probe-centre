@@ -38,11 +38,13 @@ func InitRouter() *gin.Engine {
 	r.GET("/ping", api.Ping)
 	r.POST("/stat", api.PostStat)
 	r.POST("/user", api.CreateUser)
-	r.PUT("/user", api.UpdateUser)
 	r.GET("/user", api.GetUserByToken)
+	r.GET("/token", api.Login)
+	r.POST("/session", api.Login)
 	user := r.Group("/user")
 	user.Use(AuthRequired)
 	{
+		user.PUT("", api.UpdateUser)
 		user.GET("/me", api.GetMe)
 		user.PUT("/token", api.RefreshToken)
 	}

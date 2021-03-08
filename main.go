@@ -10,5 +10,5 @@ import (
 
 func main() {
 	db.InitDB()
-	router.InitRouter().Run()
+	router.InitRouter().Run(":8080")
 }
