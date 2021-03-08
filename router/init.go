@@ -43,6 +43,7 @@ func InitRouter() *gin.Engine {
 	user := r.Group("/user")
 	user.Use(AuthRequired)
 	{
+		user.GET("probe", api.GetMyProbeList)
 		user.PUT("", api.UpdateUser)
 		user.GET("/me", api.GetMe)
 		user.PUT("/token", api.RefreshToken)

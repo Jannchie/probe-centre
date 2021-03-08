@@ -1,8 +1,11 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/Jannchie/pyobe-carrier/db"
 	"github.com/Jannchie/pyobe-carrier/model"
+	"github.com/Jannchie/pyobe-carrier/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -38,4 +41,39 @@ func PostStat(c *gin.Context) {
 		"code": 1,
 		"msg":  "success",
 	})
+
+}
+
+// GetMyProbeList is a function to get the probe that maintained by logged in user.
+// It will return the latest stat of each probe.
+func GetMyProbeList(c *gin.Context) {
+	if user, err := util.GetUserFromCtx(c); err == nil {
+		stats := []model.Stat{}
+		res := db.DB.Raw(`
+		WITH SUMMARY AS
+			(SELECT *,
+							ROW_NUMBER() OVER(PARTITION BY p.uuid
+																ORDER BY p.id DESC) AS rk
+			FROM stats p 
+			WHERE uid = ?)
+		SELECT s.*
+		FROM SUMMARY s
+		WHERE s.rk = 1
+		`, user.ID).Find(&stats)
+		if res.Error != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"code": -1,
+				"msg":  res.Error.Error(),
+			})
+			return
+		}
+		c.JSON(200, stats)
+		return
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": -1,
+			"msg":  err.Error(),
+		})
+		return
+	}
 }

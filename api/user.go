@@ -176,7 +176,7 @@ func Login(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"code": -1,
-			"msg":  "Wrong password or mail.",
+			"msg":  "wrong password or mail",
 		})
 	}
 }
