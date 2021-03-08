@@ -47,7 +47,9 @@ func PostStat(c *gin.Context) {
 // GetMyProbeList is a function to get the probe that maintained by logged in user.
 // It will return the latest stat of each probe.
 func GetMyProbeList(c *gin.Context) {
-	if user, err := util.GetUserFromCtx(c); err == nil {
+	var err error
+	var user model.User
+	if user, err = util.GetUserFromCtx(c); err == nil {
 		stats := []model.Stat{}
 		res := db.DB.Raw(`
 		WITH SUMMARY AS
@@ -69,11 +71,9 @@ func GetMyProbeList(c *gin.Context) {
 		}
 		c.JSON(200, stats)
 		return
-	} else {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"code": -1,
-			"msg":  err.Error(),
-		})
-		return
 	}
+	c.JSON(http.StatusBadRequest, gin.H{
+		"code": -1,
+		"msg":  err.Error(),
+	})
 }
