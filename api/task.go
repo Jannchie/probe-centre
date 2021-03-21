@@ -83,7 +83,6 @@ func PostRaw(c *gin.Context) {
 	}
 	c.ShouldBindJSON(&form)
 
-	// data := form.Data
 	var j datatypes.JSON
 	j, err = json.Marshal(form.Data)
 	if err != nil {
@@ -117,6 +116,7 @@ func PostRaw(c *gin.Context) {
 		TaskID:       taskID,
 		UserID:       userID,
 		SerialNumber: number,
+		URL:          task.URL,
 	}); res.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code": code.FAILED,
