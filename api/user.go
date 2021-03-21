@@ -5,8 +5,11 @@ import (
 	"crypto/rand"
 	"net/http"
 
-	"github.com/Jannchie/pyobe-carrier/db"
-	"github.com/Jannchie/pyobe-carrier/model"
+	"github.com/Jannchie/probe-centre/constant/code"
+	"github.com/Jannchie/probe-centre/constant/msg"
+	"github.com/Jannchie/probe-centre/db"
+	"github.com/Jannchie/probe-centre/model"
+	"github.com/Jannchie/probe-centre/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/argon2"
@@ -31,11 +34,17 @@ func CreateUser(c *gin.Context) {
 		Mail     string `form:"Mail" binding:"required"`
 	}
 	var form SignUpForm
-	c.ShouldBind(&form)
+
+	if err := c.ShouldBindJSON(&form); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"code": code.FAILED,
+			"msg":  err.Error(),
+		})
+		return
+	}
 
 	user := model.User{}
-	var count int64
-	if db.DB.Model(&user).Where("mail = ?", form.Mail).Count(&count); count != 0 {
+	if count := repository.User.CountByMail(form.Mail); count != 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code": -1,
 			"msg":  "Mail already been used.",
@@ -50,7 +59,7 @@ func CreateUser(c *gin.Context) {
 	user.Salt = salt
 	user.Name = form.Mail
 	user.Mail = form.Mail
-	db.DB.Create(&user)
+	repository.User.Create(&user)
 	c.JSON(http.StatusOK, user)
 }
 
@@ -69,7 +78,7 @@ func ListUser(c *gin.Context) {
 	var u []model.User
 	if c.ShouldBindQuery(&u) == nil {
 		res := db.DB.Find(&model.User{}).Limit(10)
-		c.JSON(200, res)
+		c.JSON(http.StatusOK, res)
 	} else {
 		c.JSON(400, gin.H{
 			"code": -1,
@@ -89,7 +98,7 @@ func GetUserByID(c *gin.Context) {
 	}
 	user := model.User{}
 	db.DB.First(&user, u.ID)
-	c.JSON(200, user)
+	c.JSON(http.StatusOK, user)
 }
 
 // GetUserByToken is the callback function that returns the user by token.
@@ -110,7 +119,7 @@ func GetUserByToken(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(200, user)
+	c.JSON(http.StatusOK, user)
 }
 
 // UpdateUserForm is the form for user info update.
@@ -130,7 +139,7 @@ func UpdateUser(c *gin.Context) {
 	}
 	user := model.User{}
 	db.DB.Model(&user).Where("token", c.Request.Header.Get("token")).Updates(model.User{Name: u.Name})
-	c.JSON(200, gin.H{"code": 1, "msg": "success"})
+	c.JSON(http.StatusOK, gin.H{"code": 1, "msg": msg.OK})
 }
 
 // GetMe is the callback function to get user's information.
@@ -145,7 +154,7 @@ func RefreshToken(c *gin.Context) {
 	var user model.User
 	uuid, _ := uuid.NewUUID()
 	db.DB.First(&user, "token = ?", token).Update("token", uuid.String())
-	c.JSON(http.StatusOK, gin.H{"code": 1, "data": user.Token, "msg": "success"})
+	c.JSON(http.StatusOK, gin.H{"code": 1, "data": user.Token, "msg": msg.OK})
 }
 
 // Login ist the callback function for login

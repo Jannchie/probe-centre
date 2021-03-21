@@ -1,25 +1,30 @@
 package db
 
 import (
-	"os"
-
-	"github.com/Jannchie/pyobe-carrier/model"
+	"github.com/Jannchie/probe-centre/model"
+	"github.com/Jannchie/probe-centre/repository"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 // DB is the instance of the database.
-var DB *gorm.DB
+var (
+	DB *gorm.DB
+)
 
 // InitDB initializes the mysql database.
-func InitDB() {
+func Init(dsn string) {
 	// Get Database DSN From System Environment Variable
-	dsn := os.Getenv("PG_DSN")
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	db.AutoMigrate(&model.User{})
-	db.AutoMigrate(&model.Stat{})
+	db.AutoMigrate(
+		&model.Task{},
+		&model.User{},
+		&model.RawData{},
+		&model.Stat{},
+	)
 	if err != nil {
 		panic(err)
 	}
+	repository.Init(db)
 	DB = db
 }

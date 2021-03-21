@@ -3,9 +3,10 @@ package router
 import (
 	"net/http"
 
-	"github.com/Jannchie/pyobe-carrier/api"
-	"github.com/Jannchie/pyobe-carrier/db"
-	"github.com/Jannchie/pyobe-carrier/model"
+	"github.com/Jannchie/probe-centre/api"
+	"github.com/Jannchie/probe-centre/constant/code"
+	"github.com/Jannchie/probe-centre/db"
+	"github.com/Jannchie/probe-centre/model"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,7 +15,7 @@ func AuthRequired(c *gin.Context) {
 	token := c.Request.Header.Get("token")
 	if token == "" {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"code": -1,
+			"code": code.FAILED,
 			"msg":  "Login required.",
 		})
 		return
@@ -23,7 +24,7 @@ func AuthRequired(c *gin.Context) {
 	res := db.DB.First(&user, "token = ?", token)
 	if res.Error != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"code": -1,
+			"code": code.FAILED,
 			"msg":  res.Error.Error(),
 		})
 		return
@@ -32,9 +33,14 @@ func AuthRequired(c *gin.Context) {
 	c.Next()
 }
 
-// InitRouter initializes the router
-func InitRouter() *gin.Engine {
+// Init initializes the router
+func Init() *gin.Engine {
 	r := gin.Default()
+	InitRouter(r)
+	return r
+}
+
+func InitRouter(r *gin.Engine) {
 	r.GET("/ping", api.Ping)
 	r.POST("/user", api.CreateUser)
 	r.GET("/user", api.GetUserByToken)
@@ -42,13 +48,13 @@ func InitRouter() *gin.Engine {
 	r.POST("/session", api.Login)
 	user := r.Group("/user")
 	user.Use(AuthRequired)
-	{
-		user.GET("probe", api.GetMyProbeList)
-		user.PUT("", api.UpdateUser)
-		user.GET("/me", api.GetMe)
-		user.PUT("/token", api.RefreshToken)
-	}
-
-	r.Use(AuthRequired).POST("/stat", api.PostStat)
-	return r
+	user.GET("/probe", api.GetMyProbeList)
+	user.PUT("/", api.UpdateUser)
+	user.GET("/me", api.GetMe)
+	user.PUT("/token", api.RefreshToken)
+	r.Use(AuthRequired).
+		POST("/stat", api.PostStat).
+		POST("/raw", api.PostRaw).
+		GET("/task", api.GetTask).
+		POST("/task", api.PostTask)
 }

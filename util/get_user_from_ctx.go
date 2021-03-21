@@ -3,7 +3,7 @@ package util
 import (
 	"errors"
 
-	"github.com/Jannchie/pyobe-carrier/model"
+	"github.com/Jannchie/probe-centre/model"
 	"github.com/gin-gonic/gin"
 )
 

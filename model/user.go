@@ -4,8 +4,8 @@ package model
 type User struct {
 	BaseModel
 	Name  string
-	Mail  string `gorm:"index"`
-	Token string `gorm:"index"`
+	Mail  string `gorm:"uniqueIndex"`
+	Token string `gorm:"uniqueIndex"`
 	Key   []byte `json:"-"`
 	Salt  []byte `json:"-"`
 }

@@ -4,11 +4,13 @@ Copyright © 2020 Jannchie <jannchie@gmail.com>
 package main
 
 import (
-	"github.com/Jannchie/pyobe-carrier/db"
-	"github.com/Jannchie/pyobe-carrier/router"
+	"os"
+
+	"github.com/Jannchie/probe-centre/db"
+	"github.com/Jannchie/probe-centre/router"
 )
 
 func main() {
-	db.InitDB()
-	router.InitRouter().Run(":8080")
+	db.Init(os.Getenv("PROBE_PG_DSN"))
+	router.Init().Run(":12000")
 }
