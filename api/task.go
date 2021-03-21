@@ -7,12 +7,14 @@ import (
 	"time"
 
 	"github.com/Jannchie/probe-centre/constant/code"
+	"github.com/Jannchie/probe-centre/constant/msg"
 	"github.com/Jannchie/probe-centre/constant/resp"
 	"github.com/Jannchie/probe-centre/db"
 	"github.com/Jannchie/probe-centre/model"
 	"github.com/Jannchie/probe-centre/util"
 	"github.com/gin-gonic/gin"
 	"gorm.io/datatypes"
+	"gorm.io/gorm"
 )
 
 func PostTask(c *gin.Context) {
@@ -129,4 +131,9 @@ func PostRaw(c *gin.Context) {
 			SeriesNumber: number + 1,
 			Next:         task.Next.Add(task.Interval),
 		})
+	db.DB.Model(&user).Update("credit", gorm.Expr("credit + 1"))
+	c.JSON(http.StatusOK, gin.H{
+		"code": code.OK,
+		"msg":  msg.OK,
+	})
 }
