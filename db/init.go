@@ -16,15 +16,15 @@ var (
 func Init(dsn string) {
 	// Get Database DSN From System Environment Variable
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	db.AutoMigrate(
+	if err != nil {
+		panic(err)
+	}
+	_ = db.AutoMigrate(
 		&model.Task{},
 		&model.User{},
 		&model.RawData{},
 		&model.Stat{},
 	)
-	if err != nil {
-		panic(err)
-	}
 	repository.Init(db)
 	DB = db
 }
