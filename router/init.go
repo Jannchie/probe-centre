@@ -42,19 +42,20 @@ func Init() *gin.Engine {
 
 // InitRouter init the router
 func InitRouter(r *gin.Engine) {
-	r.GET("/ping", api.Ping)
-	r.POST("/user", api.CreateUser)
-	r.GET("/user", api.GetUser)
-	r.GET("/users", api.ListUserHandle)
-	r.GET("/token", api.Login)
-	r.POST("/session", api.Login)
-	user := r.Group("/user")
-	user.Use(AuthRequired)
-	user.GET("/probe", api.GetMyProbeList)
-	user.PUT("/", api.UpdateUser)
-	user.GET("/me", api.GetMe)
-	user.PUT("/token", api.RefreshToken)
-	r.Use(AuthRequired).
+	r.GET("/ping", api.Ping).
+		POST("/user", api.CreateUser).
+		GET("/user", api.GetUser).
+		GET("/users", api.ListUserHandle).
+		GET("/token", api.Login).
+		POST("/session", api.Login)
+	r.Group("/user").
+		Use(AuthRequired).
+		GET("/probe", api.GetMyProbeList).
+		PUT("/", api.UpdateUser).
+		GET("/me", api.GetMe).
+		PUT("/token", api.RefreshToken)
+	r.
+		Use(AuthRequired).
 		POST("/stat", api.PostStat).
 		POST("/raw", api.PostRaw).
 		GET("/task", api.GetTaskHandle).
