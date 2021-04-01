@@ -55,16 +55,29 @@ func PostTask(c *gin.Context) {
 	c.JSON(http.StatusOK, resp.OK)
 }
 
-// GetTask get the task that is need to do and not pending.
-func GetTask(c *gin.Context) {
+// GetTaskHandle get the task that is need to do and not pending.
+func GetTaskHandle(c *gin.Context) {
 	var task = model.Task{}
-	if res := db.DB.Where("pend < ? AND next < ?", time.Now(), time.Now()).
-		Take(&task); res.Error != nil {
+	err := GetOneTask(&task)
+	if err != nil {
+		util.ReturnError(c, err)
 		return
 	}
-	db.DB.Model(&task).Where("id = ?", task.ID).
-		UpdateColumn("pend", time.Now().Add(time.Second*10))
 	c.JSON(http.StatusOK, task)
+}
+
+// GetOneTask is the way to get a task that should be done.
+func GetOneTask(task *model.Task) error {
+	var err error
+	if res := db.DB.Where("pend < ? AND next < ?", time.Now(), time.Now()).
+		Limit(1).Find(task); res.Error != nil {
+		err = res.Error
+	}
+	if res := db.DB.Model(task).Where("id = ?", task.ID).
+		UpdateColumn("pend", time.Now().Add(time.Second*10)); res.Error != nil {
+		err = res.Error
+	}
+	return err
 }
 
 // PostRaw update task and insert raw data

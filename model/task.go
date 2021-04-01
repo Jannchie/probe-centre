@@ -2,7 +2,7 @@ package model
 
 import "time"
 
-// User is the user of this system.
+// Task is the task for client to crawl data.
 type Task struct {
 	BaseModel
 	URL          string        `gorm:"uniqueIndex"`

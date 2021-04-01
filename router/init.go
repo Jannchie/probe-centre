@@ -40,6 +40,7 @@ func Init() *gin.Engine {
 	return r
 }
 
+// InitRouter init the router
 func InitRouter(r *gin.Engine) {
 	r.GET("/ping", api.Ping)
 	r.POST("/user", api.CreateUser)
@@ -55,6 +56,7 @@ func InitRouter(r *gin.Engine) {
 	r.Use(AuthRequired).
 		POST("/stat", api.PostStat).
 		POST("/raw", api.PostRaw).
-		GET("/task", api.GetTask).
-		POST("/task", api.PostTask)
+		GET("/task", api.GetTaskHandle).
+		POST("/task", api.PostTask).
+		GET("/ws", api.WsHandler)
 }
