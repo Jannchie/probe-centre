@@ -3,10 +3,14 @@ package api
 import (
 	"bytes"
 	"crypto/rand"
+	"errors"
 	"net/http"
 
-	"github.com/Jannchie/probe-centre/constant/code"
+	"github.com/Jannchie/probe-centre/util"
+
 	"github.com/Jannchie/probe-centre/constant/msg"
+
+	"github.com/Jannchie/probe-centre/constant/code"
 	"github.com/Jannchie/probe-centre/db"
 	"github.com/Jannchie/probe-centre/model"
 	"github.com/Jannchie/probe-centre/repository"
@@ -16,9 +20,9 @@ import (
 )
 
 func generateKeyAndSalt(password string) ([]byte, []byte) {
-	len := 128
-	salt := make([]byte, len)
-	rand.Read(salt)
+	l := 128
+	salt := make([]byte, l)
+	_, _ = rand.Read(salt)
 	key := argon2.IDKey([]byte(password), salt[:], 3, 32*1024, 4, 32)
 	return key, salt
 }
@@ -51,8 +55,8 @@ func CreateUser(c *gin.Context) {
 		})
 		return
 	}
-	uuid, _ := uuid.NewUUID()
-	user.Token = uuid.String()
+	newUUID, _ := uuid.NewUUID()
+	user.Token = newUUID.String()
 
 	key, salt := generateKeyAndSalt(form.Password)
 	user.Key = key
@@ -68,51 +72,49 @@ type UserFormID struct {
 	ID uint `form:"ID" binding:"required"`
 }
 
-// UserFormToken is the form of user by token.
-type UserFormToken struct {
-	Token string `form:"Token" binding:"required"`
-}
-
-// ListUser is the callback function that returns list of users.
-func ListUser(c *gin.Context) {
+// ListUserHandle is the callback function that returns list of users.
+func ListUserHandle(c *gin.Context) {
 	var u []model.User
 	if c.ShouldBindQuery(&u) == nil {
 		res := db.DB.Find(&model.User{}).Limit(10)
 		c.JSON(http.StatusOK, res)
 	} else {
-		c.JSON(400, gin.H{
+		c.JSON(http.StatusBadRequest, gin.H{
 			"code": -1,
 		})
+	}
+}
+
+func GetUser(c *gin.Context) {
+	// UserFormToken is the form of user by token.
+	var form struct {
+		Token string `form:"Token"`
+		ID    int    `form:"ID"`
+	}
+	if err := c.ShouldBindJSON(&form); err != nil {
+		util.ReturnError(c, err)
+		return
+	}
+	if form.Token != "" {
+		GetUserByToken(c, form.Token)
+	} else if form.ID != 0 {
+		GetUserByID(c, form.ID)
+	} else {
+		util.ReturnError(c, errors.New(""))
 	}
 }
 
 // GetUserByID is the callback function that returns the user.
-func GetUserByID(c *gin.Context) {
-	var u UserFormID
-	if err := c.ShouldBindQuery(&u); err != nil {
-		c.JSON(400, gin.H{
-			"code": -1,
-			"msg":  err.Error(),
-		})
-		return
-	}
+func GetUserByID(c *gin.Context, id int) {
 	user := model.User{}
-	db.DB.First(&user, u.ID)
+	db.DB.First(&user, id)
 	c.JSON(http.StatusOK, user)
 }
 
 // GetUserByToken is the callback function that returns the user by token.
-func GetUserByToken(c *gin.Context) {
-	var u UserFormToken
-	if err := c.ShouldBindQuery(&u); err != nil {
-		c.JSON(400, gin.H{
-			"code": -1,
-			"msg":  err.Error(),
-		})
-		return
-	}
+func GetUserByToken(c *gin.Context, token string) {
 	user := model.User{}
-	if res := db.DB.First(&user, "token = ?", u.Token); res.Error != nil {
+	if res := db.DB.First(&user, "token = ?", token); res.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code": -1,
 			"msg":  res.Error.Error(),
@@ -152,8 +154,8 @@ func GetMe(c *gin.Context) {
 func RefreshToken(c *gin.Context) {
 	token := c.Request.Header.Get("token")
 	var user model.User
-	uuid, _ := uuid.NewUUID()
-	db.DB.First(&user, "token = ?", token).Update("token", uuid.String())
+	newUUID, _ := uuid.NewUUID()
+	db.DB.First(&user, "token = ?", token).Update("token", newUUID.String())
 	c.JSON(http.StatusOK, gin.H{"code": 1, "data": user.Token, "msg": msg.OK})
 }
 

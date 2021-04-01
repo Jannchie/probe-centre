@@ -2,13 +2,11 @@ package api
 
 import (
 	"fmt"
-	"net/http"
-	"time"
-
 	"github.com/Jannchie/probe-centre/model"
 	"github.com/Jannchie/probe-centre/util"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"net/http"
 )
 
 // Message is return msg
@@ -43,21 +41,12 @@ func WsHandler(c *gin.Context) {
 			break
 		}
 		if string(message) == "need" {
-			task := <-TaskChan
-			ws.WriteJSON(task)
+			sendTask(ws)
 		}
 	}
 }
 
-func sendMsg(ws *websocket.Conn, mt int) {
-	ticker := time.NewTicker(500 * time.Millisecond)
-	done := make(chan bool)
-	for {
-		select {
-		case <-done:
-			return
-		case t := <-ticker.C:
-			_ = ws.WriteMessage(mt, []byte(fmt.Sprint("Tick at %r", t)))
-		}
-	}
+func sendTask(ws *websocket.Conn) {
+	task := <-TaskChan
+	_ = ws.WriteJSON(task)
 }

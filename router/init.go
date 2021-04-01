@@ -44,7 +44,8 @@ func Init() *gin.Engine {
 func InitRouter(r *gin.Engine) {
 	r.GET("/ping", api.Ping)
 	r.POST("/user", api.CreateUser)
-	r.GET("/user", api.GetUserByToken)
+	r.GET("/user", api.GetUser)
+	r.GET("/users", api.ListUserHandle)
 	r.GET("/token", api.Login)
 	r.POST("/session", api.Login)
 	user := r.Group("/user")

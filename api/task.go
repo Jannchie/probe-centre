@@ -22,7 +22,7 @@ func PostTask(c *gin.Context) {
 		URL      string        `form:"URL"`
 		Interval time.Duration `form:"Interval"`
 	}
-	c.ShouldBind(&form)
+	_ = c.ShouldBind(&form)
 	// Min intreval =  1 Hour
 	user, err := util.GetUserFromCtx(c)
 	if form.Interval < time.Hour/time.Second {
@@ -96,7 +96,7 @@ func PostRaw(c *gin.Context) {
 		})
 		return
 	}
-	c.ShouldBindJSON(&form)
+	_ = c.ShouldBindJSON(&form)
 
 	var j datatypes.JSON
 	j, err = json.Marshal(form.Data)
