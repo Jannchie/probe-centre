@@ -43,6 +43,7 @@ func Init() *gin.Engine {
 }
 
 func RecordIP(c *gin.Context) {
+	c.Next()
 	ip := c.ClientIP()
 	path := c.FullPath()
 	record := model.IPRecord{
