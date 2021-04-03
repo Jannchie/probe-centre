@@ -25,4 +25,10 @@ func TestCreateUser(t *testing.T) {
 	req, _ = http.NewRequest("POST", "/test", data)
 	r.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code)
+
+	w = httptest.NewRecorder()
+	data = bytes.NewReader([]byte("{\"Password\":\"123456\"}"))
+	req, _ = http.NewRequest("POST", "/test", data)
+	r.ServeHTTP(w, req)
+	assert.Equal(t, 400, w.Code)
 }
