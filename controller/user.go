@@ -1,11 +1,11 @@
-package api
+package service
 
 import (
 	"bytes"
-	"crypto/rand"
 	"errors"
 	"net/http"
 
+	"github.com/Jannchie/probe-centre/service"
 	"github.com/Jannchie/probe-centre/util"
 
 	"github.com/Jannchie/probe-centre/constant/msg"
@@ -16,20 +16,7 @@ import (
 	"github.com/Jannchie/probe-centre/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"golang.org/x/crypto/argon2"
 )
-
-func generateKeyAndSalt(password string) ([]byte, []byte) {
-	l := 128
-	salt := make([]byte, l)
-	_, _ = rand.Read(salt)
-	key := argon2.IDKey([]byte(password), salt[:], 3, 32*1024, 4, 32)
-	return key, salt
-}
-func generateKeyWithSalt(password string, salt []byte) []byte {
-	key := argon2.IDKey([]byte(password), salt[:], 3, 32*1024, 4, 32)
-	return key
-}
 
 // CreateUser is the callback function that create a user.
 func CreateUser(c *gin.Context) {
@@ -58,7 +45,7 @@ func CreateUser(c *gin.Context) {
 	newUUID, _ := uuid.NewUUID()
 	user.Token = newUUID.String()
 
-	key, salt := generateKeyAndSalt(form.Password)
+	key, salt := service.GenerateKeyAndSalt(form.Password)
 	user.Key = key
 	user.Salt = salt
 	user.Name = form.Mail
@@ -168,7 +155,7 @@ func Login(c *gin.Context) {
 		})
 		return
 	}
-	key := generateKeyWithSalt(form.Password, user.Salt)
+	key := service.GenerateKeyWithSalt(form.Password, user.Salt)
 	if res := bytes.Compare(key, user.Key); res == 0 {
 		c.JSON(http.StatusOK, user)
 	} else {

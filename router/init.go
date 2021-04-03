@@ -3,7 +3,8 @@ package router
 import (
 	"net/http"
 
-	"github.com/Jannchie/probe-centre/api"
+	service "github.com/Jannchie/probe-centre/controller"
+
 	"github.com/Jannchie/probe-centre/constant/code"
 	"github.com/Jannchie/probe-centre/db"
 	"github.com/Jannchie/probe-centre/model"
@@ -42,26 +43,26 @@ func Init() *gin.Engine {
 
 // InitRouter init the router
 func InitRouter(r *gin.Engine) {
-	r.GET("/ping", api.Ping).
-		POST("/user", api.CreateUser).
-		GET("/user", api.GetUser).
-		GET("/token", api.Login).
-		POST("/session", api.Login)
+	r.GET("/ping", service.Ping).
+		POST("/user", service.CreateUser).
+		GET("/user", service.GetUser).
+		GET("/token", service.Login).
+		POST("/session", service.Login)
 
 	r.Group("/user").
 		Use(AuthRequired).
-		PUT("/", api.UpdateUser).
-		GET("/me", api.GetMe).
-		PUT("/token", api.RefreshToken)
+		PUT("/", service.UpdateUser).
+		GET("/me", service.GetMe).
+		PUT("/token", service.RefreshToken)
 
 	r.Group("task").
 		Use(AuthRequired).
-		GET("/", api.GetTask).
-		POST("/", api.PostTask).
-		GET("/stats", api.ListTaskStats)
+		GET("/", service.GetTask).
+		POST("/", service.PostTask).
+		GET("/stats", service.ListTaskStats)
 
 	r.
 		Use(AuthRequired).
-		POST("/data", api.PostRaw).
-		GET("/ws", api.WsHandler)
+		POST("/data", service.PostRaw).
+		GET("/ws", service.WsHandler)
 }

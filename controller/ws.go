@@ -1,4 +1,4 @@
-package api
+package service
 
 import (
 	"encoding/json"
@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/Jannchie/probe-centre/service"
 
 	"github.com/Jannchie/probe-centre/model"
 
@@ -56,9 +58,9 @@ func WsHandler(c *gin.Context) {
 							<-ticker.C
 							if !pause {
 								task := model.Task{}
-								_ = GetOneTask(&task)
+								_ = service.GetOneTask(&task)
 								log.Println(fmt.Sprintf("send task %s", task.URL))
-								_ = updatePend(&task)
+								_ = service.UpdatePend(&task)
 								_ = ws.WriteJSON(task)
 							}
 						}
@@ -84,7 +86,7 @@ func WsHandler(c *gin.Context) {
 			default:
 				data := RawDataForm{}
 				_ = json.Unmarshal(p, &data)
-				err = saveRawData(c, data, user)
+				err = saveRawData(data, user)
 				if err != nil {
 					log.Println(err)
 				}

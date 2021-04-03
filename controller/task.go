@@ -1,4 +1,4 @@
-package api
+package service
 
 import (
 	"encoding/json"
@@ -21,33 +21,16 @@ import (
 // GetTask get the task that is need to do and not pending.
 func GetTask(c *gin.Context) {
 	var task = model.Task{}
-	err := GetOneTask(&task)
+	err := service.GetOneTask(&task)
 	if err != nil {
 		util.ReturnError(c, err)
 		return
 	}
-	err = updatePend(&task)
+	err = service.UpdatePend(&task)
 	if util.ShouldReturn(c, err) {
 		return
 	}
 	c.JSON(http.StatusOK, task)
-}
-
-func updatePend(task *model.Task) error {
-	res := db.DB.Model(task).Where("id = ?", task.ID).
-		UpdateColumn("pend", time.Now().UTC().Add(time.Second*10))
-	err := res.Error
-	return err
-}
-
-// GetOneTask is the way to get a task that should be done.
-func GetOneTask(task *model.Task) error {
-	var err error
-	if res := db.DB.Where("pend < NOW() AND next < NOW()").
-		Limit(1).Find(task); res.Error != nil {
-		err = res.Error
-	}
-	return err
 }
 
 // PostRaw update task and insert data data
@@ -66,7 +49,8 @@ func PostRaw(c *gin.Context) {
 		})
 		return
 	}
-	err = saveRawData(c, form, user)
+	_ = c.ShouldBindJSON(&form)
+	err = saveRawData(form, user)
 	if util.ShouldReturn(c, err) {
 		return
 	}
@@ -78,8 +62,7 @@ type RawDataForm struct {
 	Number uint64      `form:"Number"`
 }
 
-func saveRawData(c *gin.Context, form RawDataForm, user model.User) error {
-	_ = c.ShouldBindJSON(&form)
+func saveRawData(form RawDataForm, user model.User) error {
 	j, err := json.Marshal(form.Data)
 	if err != nil {
 		return err
@@ -120,7 +103,6 @@ func ListTaskStats(c *gin.Context) {
 	if util.ShouldReturn(c, err) {
 		return
 	}
-
 	c.JSON(code.OK, data)
 }
 

@@ -1,6 +1,8 @@
 package service
 
 import (
+	"time"
+
 	"github.com/Jannchie/probe-centre/db"
 	"github.com/Jannchie/probe-centre/model"
 	"github.com/gin-gonic/gin"
@@ -36,4 +38,21 @@ func GetTaskStats() (gin.H, error) {
 		"finished": finishedCount,
 	}
 	return data, nil
+}
+
+// GetOneTask is the way to get a task that should be done.
+func GetOneTask(task *model.Task) error {
+	var err error
+	if res := db.DB.Where("pend < NOW() AND next < NOW()").
+		Limit(1).Find(task); res.Error != nil {
+		err = res.Error
+	}
+	return err
+}
+
+func UpdatePend(task *model.Task) error {
+	res := db.DB.Model(task).Where("id = ?", task.ID).
+		UpdateColumn("pend", time.Now().UTC().Add(time.Second*10))
+	err := res.Error
+	return err
 }
