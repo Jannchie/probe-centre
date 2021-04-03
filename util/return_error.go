@@ -13,5 +13,4 @@ func ReturnError(c *gin.Context, err error) {
 		"code": code.FAILED,
 		"msg":  err.Error(),
 	})
-	return
 }

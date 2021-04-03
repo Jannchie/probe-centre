@@ -2,7 +2,7 @@ package model
 
 import "gorm.io/datatypes"
 
-// RawData is the raw Json data.
+// RawData is the data Json data.
 type RawData struct {
 	BaseModel
 	URL          string `gorm:"index"`

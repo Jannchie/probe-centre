@@ -72,19 +72,6 @@ type UserFormID struct {
 	ID uint `form:"ID" binding:"required"`
 }
 
-// ListUserHandle is the callback function that returns list of users.
-func ListUserHandle(c *gin.Context) {
-	var u []model.User
-	if c.ShouldBindQuery(&u) == nil {
-		res := db.DB.Find(&model.User{}).Limit(10)
-		c.JSON(http.StatusOK, res)
-	} else {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"code": -1,
-		})
-	}
-}
-
 func GetUser(c *gin.Context) {
 	// UserFormToken is the form of user by token.
 	var form struct {

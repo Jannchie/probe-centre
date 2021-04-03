@@ -45,20 +45,23 @@ func InitRouter(r *gin.Engine) {
 	r.GET("/ping", api.Ping).
 		POST("/user", api.CreateUser).
 		GET("/user", api.GetUser).
-		GET("/users", api.ListUserHandle).
 		GET("/token", api.Login).
 		POST("/session", api.Login)
+
 	r.Group("/user").
 		Use(AuthRequired).
-		GET("/probe", api.GetMyProbeList).
 		PUT("/", api.UpdateUser).
 		GET("/me", api.GetMe).
 		PUT("/token", api.RefreshToken)
+
+	r.Group("task").
+		Use(AuthRequired).
+		GET("/", api.GetTask).
+		POST("/", api.PostTask).
+		GET("/stats", api.ListTaskStats)
+
 	r.
 		Use(AuthRequired).
-		POST("/stat", api.PostStat).
-		POST("/raw", api.PostRaw).
-		GET("/task", api.GetTaskHandle).
-		POST("/task", api.PostTask).
+		POST("/data", api.PostRaw).
 		GET("/ws", api.WsHandler)
 }

@@ -10,6 +10,6 @@ import (
 type BaseModel struct {
 	ID        uint64         `gorm:"primarykey"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt time.Time      ``
+	UpdatedAt time.Time      ``
 }

@@ -1,52 +1,95 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+	"time"
+
 	"github.com/Jannchie/probe-centre/model"
+
 	"github.com/Jannchie/probe-centre/util"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"net/http"
 )
-
-// Message is return msg
-type Message struct {
-	Sender    string `json:"sender,omitempty"`
-	Recipient string `json:"recipient,omitempty"`
-	Content   string `json:"content,omitempty"`
-}
 
 var upGrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
+	EnableCompression: true,
 }
-
-// TaskChan Save the tasks should be done.
-var TaskChan = make(chan model.Task, 100)
 
 // WsHandler is the handler of ws
 func WsHandler(c *gin.Context) {
 	ws, err := upGrader.Upgrade(c.Writer, c.Request, nil)
+	user, _ := util.GetUserFromCtx(c)
+	grand := make(chan struct{})
 	if err != nil {
 		util.ReturnError(c, err)
 		return
 	}
 	defer ws.Close()
-	for {
-		//读取ws中的数据
-		_, message, err := ws.ReadMessage()
-		fmt.Println(string(message))
-		if err != nil {
-			break
+	go func() {
+		started := false
+		pause := false
+		for {
+			mt, p, err := ws.ReadMessage()
+			if err != nil {
+				log.Println(err)
+			}
+			msg := string(p)
+			switch msg {
+			case "start":
+				go func() {
+					if !started {
+						err := ws.WriteMessage(mt, []byte("started"))
+						if err != nil {
+							log.Println(err)
+						}
+						started = true
+						const duration = time.Second * 10
+						ticker := time.NewTicker(duration)
+						defer ticker.Stop()
+						for {
+							<-ticker.C
+							if !pause {
+								task := model.Task{}
+								_ = GetOneTask(&task)
+								log.Println(fmt.Sprintf("send task %s", task.URL))
+								_ = updatePend(&task)
+								_ = ws.WriteJSON(task)
+							}
+						}
+					}
+				}()
+			case "switch":
+				pause = !pause
+				var err error
+				if pause {
+					err = ws.WriteMessage(mt, []byte("paused"))
+				} else {
+					err = ws.WriteMessage(mt, []byte("resume"))
+				}
+				if err != nil {
+					log.Println(err)
+				}
+			case "fin":
+				err := ws.WriteMessage(mt, []byte("finished"))
+				if err != nil {
+					log.Println(err)
+				}
+				grand <- struct{}{}
+			default:
+				data := RawDataForm{}
+				_ = json.Unmarshal(p, &data)
+				err = saveRawData(c, data, user)
+				if err != nil {
+					log.Println(err)
+				}
+			}
 		}
-		if string(message) == "need" {
-			sendTask(ws)
-		}
-	}
-}
-
-func sendTask(ws *websocket.Conn) {
-	task := <-TaskChan
-	_ = ws.WriteJSON(task)
+	}()
+	<-grand
 }

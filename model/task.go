@@ -11,5 +11,5 @@ type Task struct {
 	Pend         time.Time     `gorm:"index"`
 	Interval     time.Duration ``
 	UserID       uint64        `gorm:"index"`
-	SeriesNumber uint64
+	SeriesNumber uint64        ``
 }

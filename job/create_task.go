@@ -4,17 +4,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Jannchie/probe-centre/api"
 	"github.com/Jannchie/probe-centre/db"
 	"github.com/Jannchie/probe-centre/model"
 	"gorm.io/gorm/clause"
 )
 
-// API consts
+// API const
 const (
-	BiliUserInfoAPI  = "http://api.bilibili.com/x/web-interface/card?mid=%d"
-	BiliUserStatAPI  = "http://api.bilibili.com/x/space/upstat?mid=%d"
-	BiliUserVideoAPI = "http://api.bilibili.com/x/space/arc/search?mid=%d&order=pubdate&pn=1&ps=50"
+	//BiliUserInfoAPI  = "http://api.bilibili.com/x/web-interface/card?mid=%d"
+	//BiliUserStatAPI  = "http://api.bilibili.com/x/space/upstat?mid=%d"
+	//BiliUserVideoAPI = "http://api.bilibili.com/x/space/arc/search?mid=%d&order=pubdate&pn=1&ps=50"
 	BiliVideoRankAPI = "https://api.bilibili.com/x/web-interface/ranking/v2?rid=%d&type=%s"
 )
 
@@ -40,15 +39,4 @@ func createBiliTasks() {
 // Start is to start all jobs.
 func Start() {
 	go createBiliTasks()
-	go sendTaskToChan()
-}
-
-func sendTaskToChan() {
-	for {
-		task := model.Task{}
-		err := api.GetOneTask(&task)
-		if err == nil {
-			api.TaskChan <- task
-		}
-	}
 }

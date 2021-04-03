@@ -23,7 +23,6 @@ func Init(dsn string) {
 		&model.Task{},
 		&model.User{},
 		&model.RawData{},
-		&model.Stat{},
 	)
 	repository.Init(db)
 	DB = db
