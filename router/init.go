@@ -1,11 +1,12 @@
 package router
 
 import (
+	"log"
 	"net/http"
-
-	service "github.com/Jannchie/probe-centre/controller"
+	"time"
 
 	"github.com/Jannchie/probe-centre/constant/code"
+	"github.com/Jannchie/probe-centre/controller"
 	"github.com/Jannchie/probe-centre/db"
 	"github.com/Jannchie/probe-centre/model"
 	"github.com/gin-gonic/gin"
@@ -41,28 +42,42 @@ func Init() *gin.Engine {
 	return r
 }
 
+func RecordIP(c *gin.Context) {
+	ip := c.ClientIP()
+	path := c.FullPath()
+	record := model.IPRecord{
+		IP:   ip,
+		Path: path,
+		Time: time.Now().UTC(),
+	}
+	db.DB.Create(&record)
+	log.Println(ip)
+}
+
 // InitRouter init the router
 func InitRouter(r *gin.Engine) {
-	r.GET("/ping", service.Ping).
-		POST("/user", service.CreateUser).
-		GET("/user", service.GetUser).
-		GET("/token", service.Login).
-		POST("/session", service.Login)
+	r.Use(RecordIP)
+
+	r.GET("/ping", controller.Ping).
+		POST("/user", controller.CreateUser).
+		GET("/user", controller.GetUser).
+		GET("/token", controller.Login).
+		POST("/session", controller.Login)
 
 	r.Group("/user").
 		Use(AuthRequired).
-		PUT("/", service.UpdateUser).
-		GET("/me", service.GetMe).
-		PUT("/token", service.RefreshToken)
+		PUT("/", controller.UpdateUser).
+		GET("/me", controller.GetMe).
+		PUT("/token", controller.RefreshToken)
 
 	r.Group("task").
 		Use(AuthRequired).
-		GET("/", service.GetTask).
-		POST("/", service.PostTask).
-		GET("/stats", service.ListTaskStats)
+		GET("/", controller.GetTask).
+		POST("/", controller.PostTask).
+		GET("/stats", controller.ListTaskStats)
 
 	r.
 		Use(AuthRequired).
-		POST("/data", service.PostRaw).
-		GET("/ws", service.WsHandler)
+		POST("/data", controller.PostRaw).
+		GET("/ws", controller.WsHandler)
 }

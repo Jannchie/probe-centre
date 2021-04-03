@@ -43,11 +43,11 @@ func GetTaskStats() (gin.H, error) {
 // GetOneTask is the way to get a task that should be done.
 func GetOneTask(task *model.Task) error {
 	var err error
-	if res := db.DB.Where("pend < NOW() AND next < NOW()").
-		Limit(1).Find(task); res.Error != nil {
+	if res := db.DB.Where("pend < NOW() AND next < NOW()").Take(task); res.Error != nil {
 		err = res.Error
+		return err
 	}
-	return err
+	return nil
 }
 
 func UpdatePend(task *model.Task) error {

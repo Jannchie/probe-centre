@@ -13,6 +13,6 @@ import (
 
 func main() {
 	db.Init(os.Getenv("PROBE_PG_DSN"))
-	go job.Start()
+	go job.Init()
 	_ = router.Init().Run(":12000")
 }

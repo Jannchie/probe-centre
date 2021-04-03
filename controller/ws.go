@@ -1,4 +1,4 @@
-package service
+package controller
 
 import (
 	"encoding/json"
@@ -58,7 +58,10 @@ func WsHandler(c *gin.Context) {
 							<-ticker.C
 							if !pause {
 								task := model.Task{}
-								_ = service.GetOneTask(&task)
+								err = service.GetOneTask(&task)
+								if err != nil {
+									continue
+								}
 								log.Println(fmt.Sprintf("send task %s", task.URL))
 								_ = service.UpdatePend(&task)
 								_ = ws.WriteJSON(task)

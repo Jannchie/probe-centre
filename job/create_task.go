@@ -35,8 +35,3 @@ func createBiliTasks() {
 		}
 	}
 }
-
-// Start is to start all jobs.
-func Start() {
-	go createBiliTasks()
-}
