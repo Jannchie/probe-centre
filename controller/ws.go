@@ -87,9 +87,9 @@ func WsHandler(c *gin.Context) {
 				}
 				grand <- struct{}{}
 			default:
-				data := RawDataForm{}
+				data := model.RawDataForm{}
 				_ = json.Unmarshal(p, &data)
-				err = saveRawData(data, user)
+				err = service.SaveRawData(data, user)
 				if err != nil {
 					log.Println(err)
 				}

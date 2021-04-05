@@ -9,25 +9,26 @@ import (
 )
 
 func GetTaskStats() (gin.H, error) {
+	now := time.Now().UTC()
 	var waitingCount int64
 	var finishedCount int64
 	var pendingCount int64
 	// pending
 	res := db.DB.Model(&model.Task{}).
-		Where("pend > NOW() AND next < NOW()").
+		Where("pend > ? AND next < ?", now, now).
 		Count(&pendingCount)
 	if res.Error != nil {
 		return nil, res.Error
 	}
 	// waiting
 	res = db.DB.Model(&model.Task{}).
-		Where("pend < NOW() AND next < NOW()").
+		Where("pend < ? AND next < ?", now, now).
 		Count(&waitingCount)
 	if res.Error != nil {
 		return nil, res.Error
 	}
 	// finished
-	res = db.DB.Model(&model.Task{}).Where("next > NOW()").
+	res = db.DB.Model(&model.Task{}).Where("next > ?", now).
 		Count(&finishedCount)
 	if res.Error != nil {
 		return nil, res.Error
@@ -43,7 +44,8 @@ func GetTaskStats() (gin.H, error) {
 // GetOneTask is the way to get a task that should be done.
 func GetOneTask(task *model.Task) error {
 	var err error
-	if res := db.DB.Where("pend < NOW() AND next < NOW()").Take(task); res.Error != nil {
+	now := time.Now().UTC()
+	if res := db.DB.Where("pend < ? AND next < ?", now, now).Take(task); res.Error != nil {
 		err = res.Error
 		return err
 	}

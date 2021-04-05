@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
-	"errors"
 	"net/http"
 	"time"
 
@@ -15,7 +13,6 @@ import (
 	"github.com/Jannchie/probe-centre/model"
 	"github.com/Jannchie/probe-centre/util"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 // GetTask get the task that is need to do and not pending.
@@ -49,53 +46,14 @@ func PostRaw(c *gin.Context) {
 		})
 		return
 	}
-	_ = c.ShouldBindJSON(&form)
-	err = saveRawData(form, user)
+	err = c.ShouldBindJSON(&form)
 	if util.ShouldReturn(c, err) {
 		return
 	}
-}
-
-type RawDataForm struct {
-	Data   interface{} `form:"Data"`
-	TaskID uint64      `form:"TaskID"`
-	Number uint64      `form:"Number"`
-}
-
-func saveRawData(form RawDataForm, user model.User) error {
-	j, err := json.Marshal(form.Data)
-	if err != nil {
-		return err
+	err = service.SaveRawData(form, user)
+	if util.ShouldReturn(c, err) {
+		return
 	}
-	taskID := form.TaskID
-	number := form.Number
-	userID := user.ID
-	var task = model.Task{}
-	if res := db.DB.Where("id = ? AND pend > NOW() AND next < NOW()",
-		taskID).
-		Take(&task); res.Error != nil {
-		return res.Error
-	}
-
-	if number != task.SeriesNumber {
-		return errors.New("series number not match")
-	}
-	if res := db.DB.Save(&model.RawData{
-		Data:         j,
-		TaskID:       taskID,
-		UserID:       userID,
-		SerialNumber: number,
-		URL:          task.URL,
-	}); res.Error != nil {
-		return res.Error
-	}
-	db.DB.Where("id = ?", taskID).
-		Updates(model.Task{
-			SeriesNumber: number + 1,
-			Next:         time.Now().UTC().Add(task.Interval * time.Second),
-		})
-	db.DB.Model(&user).Update("credit", gorm.Expr("credit + 1"))
-	return nil
 }
 
 func ListTaskStats(c *gin.Context) {
@@ -111,7 +69,10 @@ func PostTask(c *gin.Context) {
 		URL      string        `form:"URL"`
 		Interval time.Duration `form:"Interval"`
 	}
-	_ = c.ShouldBind(&form)
+	err := c.ShouldBindJSON(&form)
+	if util.ShouldReturn(c, err) {
+		return
+	}
 	// Min interval =  1 Hour
 	user, err := util.GetUserFromCtx(c)
 	if form.Interval < time.Hour/time.Second {
@@ -125,7 +86,7 @@ func PostTask(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code": code.FAILED,
-			"msg":  "Get user failed!",
+			"msg":  err.Error(),
 		})
 		return
 	}
