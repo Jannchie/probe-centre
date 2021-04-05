@@ -7,6 +7,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gorilla/websocket"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/Jannchie/probe-centre/db"
@@ -39,13 +41,26 @@ func testHandle(handle func(c *gin.Context), dataStr string) *httptest.ResponseR
 	r.ServeHTTP(w, req)
 	return w
 }
-func testHandleWithToken(handle func(c *gin.Context), dataStr string, token string) *httptest.ResponseRecorder {
+func testHandleWithToken(handle func(c *gin.Context), dataStr string, token string) (w *httptest.ResponseRecorder) {
 	r := gin.New()
 	r.POST("/test", handle)
-	w := httptest.NewRecorder()
+	w = httptest.NewRecorder()
 	data := bytes.NewReader([]byte(dataStr))
 	req, _ := http.NewRequest("POST", "/test", data)
 	req.Header.Add("token", token)
 	r.ServeHTTP(w, req)
-	return w
+	return
+}
+
+func testWSHandleWithToken(handle func(c *gin.Context), token string) (resp *http.Response) {
+	h := func(w http.ResponseWriter, r *http.Request) {
+		r.Header.Add("token", token)
+		ctx, _ := gin.CreateTestContext(w)
+		ctx.Request = r
+		handle(ctx)
+	}
+	s := httptest.NewServer(http.HandlerFunc(h))
+	d := websocket.Dialer{}
+	_, resp, _ = d.Dial("ws://"+s.Listener.Addr().String(), nil)
+	return
 }

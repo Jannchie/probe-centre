@@ -1,37 +1,17 @@
-package controller
+package service
 
 import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
-	"github.com/Jannchie/probe-centre/service"
-
 	"github.com/Jannchie/probe-centre/model"
-
-	"github.com/Jannchie/probe-centre/util"
-	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
 
-var upGrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-	EnableCompression: true,
-}
-
-// WsHandler is the handler of ws
-func WsHandler(c *gin.Context) {
-	ws, err := upGrader.Upgrade(c.Writer, c.Request, nil)
-	user, _ := util.GetUserFromCtx(c)
+func StartWebSocket(ws *websocket.Conn, user model.User) {
 	grand := make(chan struct{})
-	if err != nil {
-		util.ReturnError(c, err)
-		return
-	}
 	defer ws.Close()
 	go func() {
 		started := false
@@ -58,12 +38,12 @@ func WsHandler(c *gin.Context) {
 							<-ticker.C
 							if !pause {
 								task := model.Task{}
-								err = service.GetOneTask(&task)
+								err = GetOneTask(&task)
 								if err != nil {
 									continue
 								}
 								log.Println(fmt.Sprintf("send task %s", task.URL))
-								_ = service.UpdatePend(&task)
+								_ = UpdatePend(&task)
 								_ = ws.WriteJSON(task)
 							}
 						}
@@ -89,7 +69,7 @@ func WsHandler(c *gin.Context) {
 			default:
 				data := model.RawDataForm{}
 				_ = json.Unmarshal(p, &data)
-				err = service.SaveRawData(data, user)
+				err = SaveRawData(data, user)
 				if err != nil {
 					log.Println(err)
 				}

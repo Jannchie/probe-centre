@@ -80,5 +80,5 @@ func InitRouter(r *gin.Engine) {
 	r.
 		Use(AuthRequired).
 		POST("/data", controller.PostRaw).
-		GET("/ws", controller.WsHandler)
+		GET("/ws", controller.ClientWebSocketHandle)
 }
