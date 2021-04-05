@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"bytes"
 	"errors"
 	"net/http"
 
@@ -75,13 +74,18 @@ func GetUser(c *gin.Context) {
 		GetUserByID(c, form.ID)
 	} else {
 		util.ReturnError(c, errors.New(""))
+		return
 	}
 }
 
 // GetUserByID is the callback function that returns the user.
 func GetUserByID(c *gin.Context, id int) {
 	user := model.User{}
-	db.DB.First(&user, id)
+	if res := db.DB.Take(&user, id); res.Error != nil {
+		if util.ShouldReturn(c, res.Error) {
+			return
+		}
+	}
 	c.JSON(http.StatusOK, user)
 }
 
@@ -106,7 +110,7 @@ type UpdateUserForm struct {
 // UpdateUser is the callback function that update the user.
 func UpdateUser(c *gin.Context) {
 	var u UpdateUserForm
-	if err := c.ShouldBind(&u); err != nil {
+	if err := c.ShouldBindJSON(&u); err != nil {
 		c.JSON(400, gin.H{
 			"code": -1,
 			"msg":  err.Error(),
@@ -115,7 +119,7 @@ func UpdateUser(c *gin.Context) {
 	}
 	user := model.User{}
 	db.DB.Model(&user).Where("token", c.Request.Header.Get("token")).Updates(model.User{Name: u.Name})
-	c.JSON(http.StatusOK, gin.H{"code": 1, "msg": msg.OK})
+	c.JSON(http.StatusOK, gin.H{"code": 1, "msg": msg.OK, "data": user})
 }
 
 // GetMe is the callback function to get user's information.
@@ -129,39 +133,27 @@ func RefreshToken(c *gin.Context) {
 	token := c.Request.Header.Get("token")
 	var user model.User
 	newUUID, _ := uuid.NewUUID()
-	db.DB.First(&user, "token = ?", token).Update("token", newUUID.String())
+	res := db.DB.Take(&user, "token = ?", token).Update("token", newUUID.String())
+	if util.ShouldReturn(c, res.Error) {
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"code": 1, "data": user.Token, "msg": msg.OK})
 }
 
 // Login ist the callback function for login
 func Login(c *gin.Context) {
-	type LoginForm struct {
-		Mail     string `form:"Mail" binding:"required"`
-		Password string `form:"Password" binding:"required"`
-	}
-	var form LoginForm
-	if err := c.ShouldBind(&form); err != nil {
+
+	var form model.LoginForm
+	if err := c.ShouldBindJSON(&form); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"code": -1,
 			"msg":  err.Error(),
 		})
 		return
 	}
-	var user model.User
-	if err := db.DB.First(&user, "mail = ?", form.Mail).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"code": -1,
-			"msg":  err.Error(),
-		})
+	user, err := service.LoginByForm(form)
+	if util.ShouldReturn(c, err) {
 		return
 	}
-	key := service.GenerateKeyWithSalt(form.Password, user.Salt)
-	if res := bytes.Compare(key, user.Key); res == 0 {
-		c.JSON(http.StatusOK, user)
-	} else {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"code": -1,
-			"msg":  "wrong password or mail",
-		})
-	}
+	c.JSON(http.StatusOK, user)
 }
