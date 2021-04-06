@@ -23,6 +23,8 @@ func StartWebSocket(ws *websocket.Conn, user model.User) {
 			}
 			msg := string(p)
 			switch msg {
+			case "":
+				return
 			case "start":
 				go func() {
 					if !started {
