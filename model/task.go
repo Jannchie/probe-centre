@@ -6,6 +6,7 @@ import "time"
 type Task struct {
 	BaseModel
 	URL          string        `gorm:"uniqueIndex"`
+	Subject      string        `gorm:"index" form:"Subject"`
 	Last         time.Time     `gorm:"index"`
 	Next         time.Time     `gorm:"index"`
 	Pend         time.Time     `gorm:"index"`

@@ -11,6 +11,7 @@ import (
 )
 
 func SaveRawData(form model.RawDataForm, user model.User) error {
+	now := time.Now().UTC()
 	j, err := json.Marshal(form.Data)
 	if err != nil {
 		return err
@@ -19,8 +20,8 @@ func SaveRawData(form model.RawDataForm, user model.User) error {
 	number := form.Number
 	userID := user.ID
 	var task = model.Task{}
-	if res := db.DB.Where("id = ? AND pend > NOW() AND next < NOW()",
-		taskID).
+	if res := db.DB.Where("id = ? AND pend > ? AND next < ?",
+		taskID, now, now).
 		Take(&task); res.Error != nil {
 		return res.Error
 	}

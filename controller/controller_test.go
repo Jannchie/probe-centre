@@ -52,15 +52,15 @@ func testHandleWithToken(handle func(c *gin.Context), dataStr string, token stri
 	return
 }
 
-func testWSHandleWithToken(handle func(c *gin.Context), token string) (resp *http.Response) {
+func testWSHandleWithToken(handle func(c *gin.Context), token string) (s *httptest.Server, conn *websocket.Conn, resp *http.Response, err error) {
 	h := func(w http.ResponseWriter, r *http.Request) {
 		r.Header.Add("token", token)
 		ctx, _ := gin.CreateTestContext(w)
 		ctx.Request = r
 		handle(ctx)
 	}
-	s := httptest.NewServer(http.HandlerFunc(h))
+	s = httptest.NewServer(http.HandlerFunc(h))
 	d := websocket.Dialer{}
-	_, resp, _ = d.Dial("ws://"+s.Listener.Addr().String(), nil)
+	conn, resp, err = d.Dial("ws://"+s.Listener.Addr().String(), nil)
 	return
 }

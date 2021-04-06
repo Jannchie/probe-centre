@@ -67,6 +67,7 @@ func ListTaskStats(c *gin.Context) {
 func PostTask(c *gin.Context) {
 	var form struct {
 		URL      string        `form:"URL"`
+		Subject  string        `form:"Subject"`
 		Interval time.Duration `form:"Interval"`
 	}
 	err := c.ShouldBindJSON(&form)
