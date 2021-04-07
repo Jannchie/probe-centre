@@ -3,7 +3,7 @@ package test
 import (
 	"github.com/Jannchie/probe-centre/db"
 	"github.com/Jannchie/probe-centre/model"
-	"github.com/Jannchie/probe-centre/service"
+	"github.com/Jannchie/probe-centre/util"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -20,6 +20,6 @@ func CreateTestUser() {
 		Token: "00000000-0000-0000-0000-000000000000",
 	}
 	passwd := "123456"
-	user.Key, user.Salt = service.GenerateKeyAndSalt(passwd)
+	user.Key, user.Salt = util.GenerateKeyAndSalt(passwd)
 	db.DB.Create(&user)
 }
