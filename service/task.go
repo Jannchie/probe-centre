@@ -48,6 +48,7 @@ func GetOneTask(task *model.Task) error {
 	if res := db.DB.Where("pend < ? AND next < ?", now, now).Take(task); res.Error != nil {
 		err = res.Error
 		return err
+
 	}
 	return nil
 }
