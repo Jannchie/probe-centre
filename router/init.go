@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Jannchie/probe-centre/util"
+
 	"github.com/Jannchie/probe-centre/constant/code"
 	"github.com/Jannchie/probe-centre/controller"
 	"github.com/Jannchie/probe-centre/db"
@@ -53,6 +55,10 @@ func RecordIP(c *gin.Context) {
 	}
 	db.DB.Create(&record)
 	log.Println(ip)
+	u, err := util.GetUserFromCtx(c)
+	if err == nil {
+		db.DB.Model(&u).Update("ip", c.ClientIP())
+	}
 }
 
 // InitRouter init the router
