@@ -44,7 +44,7 @@ func CreateUser(c *gin.Context) {
 	newUUID, _ := uuid.NewUUID()
 	user.Token = newUUID.String()
 
-	key, salt := service.GenerateKeyAndSalt(form.Password)
+	key, salt := util.GenerateKeyAndSalt(form.Password)
 	user.Key = key
 	user.Salt = salt
 	user.Name = form.Mail
