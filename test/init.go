@@ -9,7 +9,7 @@ import (
 )
 
 func Init() {
-	db.DB, _ = gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+	db.DB, _ = gorm.Open(sqlite.Open("file::memory:"), &gorm.Config{})
 	db.InitDB()
 }
 

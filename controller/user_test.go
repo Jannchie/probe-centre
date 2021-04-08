@@ -3,6 +3,8 @@ package controller
 import (
 	"testing"
 
+	"github.com/Jannchie/probe-centre/test"
+
 	"github.com/Jannchie/probe-centre/db"
 	"github.com/Jannchie/probe-centre/model"
 
@@ -67,6 +69,8 @@ func TestRefreshToken(t *testing.T) {
 }
 
 func TestLogin(t *testing.T) {
+	test.Init()
+	test.CreateTestUser()
 	w := testHandle(Login, `{"Mail":"test@test.com","Password":"123456"}`)
 	assert.Equal(t, 200, w.Code)
 	w = testHandle(Login, `{"Mail1":"test@test.com","Password":"123456"}`)

@@ -35,6 +35,7 @@ func TestGetTaskStats(t *testing.T) {
 }
 
 func TestGetOneTask(t *testing.T) {
+	test.Init()
 	type args struct {
 		task *model.Task
 	}
@@ -46,7 +47,6 @@ func TestGetOneTask(t *testing.T) {
 		{"err", args{&model.Task{}}, true},
 	}
 	for _, tt := range tests {
-		test.Init()
 		t.Run(tt.name, func(t *testing.T) {
 			if err := GetOneTask(tt.args.task); (err != nil) != tt.wantErr {
 				t.Errorf("GetOneTask() error = %v, wantErr %v", err, tt.wantErr)
