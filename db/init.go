@@ -27,7 +27,7 @@ func InitDB() {
 	_ = DB.AutoMigrate(
 		&model.Task{},
 		&model.User{},
-		&model.RawData{},
+		&model.RawJSONData{},
 		&model.IPRecord{},
 	)
 	repository.Init(DB)

@@ -2,7 +2,6 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"time"
 
@@ -10,25 +9,40 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+type probeCmd struct {
+	CMD  string `json:"CMD"`
+	Data string `json:"Data,omitempty"`
+}
+
+type CentreMsg struct {
+	Msg string `json:"Msg"`
+	URL string `json:"URL,omitempty"`
+}
+
 func StartWebSocket(ws *websocket.Conn, user model.User) {
 	grand := make(chan struct{})
-	defer ws.Close()
+	defer func() {
+		<-grand
+		ws.Close()
+	}()
 	go func() {
 		started := false
 		pause := false
 		for {
-			mt, p, err := ws.ReadMessage()
+			var cmd probeCmd
+			err := ws.ReadJSON(&cmd)
 			if err != nil {
 				log.Println(err)
+				return
 			}
-			msg := string(p)
-			switch msg {
+			log.Println(cmd)
+			switch cmd.CMD {
 			case "":
 				return
 			case "start":
 				go func() {
 					if !started {
-						err := ws.WriteMessage(mt, []byte("started"))
+						err := ws.WriteJSON(CentreMsg{"start", ""})
 						if err != nil {
 							log.Println(err)
 						}
@@ -44,7 +58,6 @@ func StartWebSocket(ws *websocket.Conn, user model.User) {
 								if err != nil {
 									continue
 								}
-								log.Println(fmt.Sprintf("send task %s", task.URL))
 								_ = UpdatePend(&task)
 								_ = ws.WriteJSON(task)
 							}
@@ -55,28 +68,32 @@ func StartWebSocket(ws *websocket.Conn, user model.User) {
 				pause = !pause
 				var err error
 				if pause {
-					err = ws.WriteMessage(mt, []byte("paused"))
+					err = ws.WriteJSON(CentreMsg{"paused", ""})
 				} else {
-					err = ws.WriteMessage(mt, []byte("resume"))
+					err = ws.WriteJSON(CentreMsg{"resume", ""})
 				}
 				if err != nil {
 					log.Println(err)
 				}
 			case "fin":
-				err := ws.WriteMessage(mt, []byte("finished"))
+				err = ws.WriteJSON(CentreMsg{"finished", ""})
 				if err != nil {
 					log.Println(err)
 				}
 				grand <- struct{}{}
-			default:
+			case "commit":
 				data := model.RawDataForm{}
-				_ = json.Unmarshal(p, &data)
+				err = json.Unmarshal([]byte(cmd.Data), &data)
+				if err != nil {
+					log.Println(err)
+					continue
+				}
 				err = SaveRawData(data, user)
 				if err != nil {
 					log.Println(err)
+					continue
 				}
 			}
 		}
 	}()
-	<-grand
 }

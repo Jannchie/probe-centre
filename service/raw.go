@@ -29,7 +29,7 @@ func SaveRawData(form model.RawDataForm, user model.User) error {
 	if number != task.SeriesNumber {
 		return errors.New("series number not match")
 	}
-	if res := db.DB.Save(&model.RawData{
+	if res := db.DB.Save(&model.RawJSONData{
 		Data:         j,
 		TaskID:       taskID,
 		UserID:       userID,
