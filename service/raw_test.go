@@ -29,17 +29,17 @@ func TestSaveRawData(t *testing.T) {
 		wantErr bool
 	}{
 		{"no user", args{model.RawDataForm{
-			Data:   nil,
+			Data:   "",
 			TaskID: 0,
 			Number: 0,
 		}, model.User{}}, true},
 		{"user", args{model.RawDataForm{
-			Data:   nil,
+			Data:   "",
 			TaskID: 0,
 			Number: 0,
 		}, u}, true},
 		{"ok", args{model.RawDataForm{
-			Data:   nil,
+			Data:   "",
 			TaskID: 1,
 			Number: 0,
 		}, u}, false},

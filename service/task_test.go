@@ -18,7 +18,7 @@ func TestGetTaskStats(t *testing.T) {
 		want    gin.H
 		wantErr bool
 	}{
-		{"ok", gin.H{"Pending": int64(0), "finished": int64(0), "waiting": int64(0)}, false},
+		{"ok", gin.H{"Pending": int64(0), "Finished": int64(0), "Waiting": int64(0)}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -22,7 +22,7 @@ func TestGetTask(t *testing.T) {
 }
 
 func TestListTaskStats(t *testing.T) {
-	w := testHandle(ListTaskStats, "")
+	w := testHandle(GetTaskStats, "")
 	assert.Equal(t, 200, w.Code)
 }
 
