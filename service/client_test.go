@@ -38,10 +38,11 @@ func TestStartWebSocket(t *testing.T) {
 		t.Fatalf("%v", err)
 	}
 	defer ws.Close()
+	var res model.CentreMsg
+
 	_ = ws.WriteJSON(model.ProbeCmd{
 		CMD: cmd.START,
 	})
-	var res model.CentreMsg
 	_ = ws.ReadJSON(&res)
 	assert.Equal(t, res.Code, model.StartMsg.Code)
 
@@ -56,9 +57,16 @@ func TestStartWebSocket(t *testing.T) {
 	})
 	_ = ws.ReadJSON(&res)
 	assert.Equal(t, res.Code, model.ResumedMsg.Code)
+
+	exceptTask := test.CreateTestTask()
+	task := model.Task{}
+	_ = ws.ReadJSON(&task)
+	assert.Equal(t, exceptTask.URL, task.URL)
+
 	_ = ws.WriteJSON(model.ProbeCmd{
 		CMD: cmd.FINISH,
 	})
 	_ = ws.ReadJSON(&res)
 	assert.Equal(t, res.Code, model.FinishedMsg.Code)
+
 }

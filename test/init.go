@@ -25,6 +25,18 @@ func CreateTestUser() model.User {
 	return user
 }
 
+func CreateTestTask() (task model.Task) {
+	task = model.Task{
+		BaseModel:    model.BaseModel{},
+		URL:          "https://www.test.com",
+		Subject:      "",
+		Interval:     3600,
+		SeriesNumber: 1,
+	}
+	db.DB.Create(&task)
+	return
+}
+
 func GetTestUser() (user model.User) {
 	db.DB.Take(&user)
 	return

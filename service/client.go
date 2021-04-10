@@ -2,7 +2,10 @@ package service
 
 import (
 	"log"
+	"sync"
 	"time"
+
+	"go.uber.org/atomic"
 
 	cmd "github.com/Jannchie/probe-centre/constant"
 
@@ -10,15 +13,24 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+func WriteJsonWithLock(ws *websocket.Conn, m *sync.Mutex, v interface{}) error {
+	m.Lock()
+	defer m.Unlock()
+	err := ws.WriteJSON(v)
+	return err
+}
+
 func StartWebSocket(ws *websocket.Conn, user model.User) {
 	grand := make(chan struct{})
 	defer func() {
 		<-grand
 		ws.Close()
 	}()
+	m := sync.Mutex{}
+	started := false
+	pause := atomic.NewBool(false)
+
 	go func() {
-		started := false
-		pause := false
 		for {
 			var probeCmd model.ProbeCmd
 			err := ws.ReadJSON(&probeCmd)
@@ -31,40 +43,40 @@ func StartWebSocket(ws *websocket.Conn, user model.User) {
 			case "":
 				return
 			case cmd.START:
-				go func() {
-					if !started {
-						_ = ws.WriteJSON(model.StartMsg)
-						started = true
+				if !started {
+					_ = WriteJsonWithLock(ws, &m, model.StartMsg)
+					started = true
+					go func() {
 						const duration = time.Second * 10
 						ticker := time.NewTicker(duration)
 						defer ticker.Stop()
 						for {
 							<-ticker.C
-							if !pause {
+							if !pause.Load() {
 								task := model.Task{}
 								err = GetOneTask(&task)
 								if err != nil {
 									continue
 								}
 								_ = UpdatePend(&task)
-								_ = ws.WriteJSON(task)
+								_ = WriteJsonWithLock(ws, &m, task)
 							}
 						}
-					}
-				}()
+					}()
+				}
 			case cmd.SWITCH:
-				pause = !pause
+				pause.Store(!pause.Load())
 				var err error
-				if pause {
-					err = ws.WriteJSON(model.PausedMsg)
+				if pause.Load() {
+					err = WriteJsonWithLock(ws, &m, model.PausedMsg)
 				} else {
-					err = ws.WriteJSON(model.ResumedMsg)
+					err = WriteJsonWithLock(ws, &m, model.ResumedMsg)
 				}
 				if err != nil {
 					log.Println(err)
 				}
 			case cmd.FINISH:
-				err = ws.WriteJSON(model.FinishedMsg)
+				err = WriteJsonWithLock(ws, &m, model.FinishedMsg)
 				if err != nil {
 					log.Println(err)
 				}
