@@ -13,7 +13,7 @@ func Init() {
 	db.InitDB()
 }
 
-func CreateTestUser() {
+func CreateTestUser() model.User {
 	user := model.User{
 		Name:  "test",
 		Mail:  "test@test.com",
@@ -22,4 +22,10 @@ func CreateTestUser() {
 	passwd := "123456"
 	user.Key, user.Salt = util.GenerateKeyAndSalt(passwd)
 	db.DB.Create(&user)
+	return user
+}
+
+func GetTestUser() (user model.User) {
+	db.DB.Take(&user)
+	return
 }

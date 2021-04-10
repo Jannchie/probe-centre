@@ -34,9 +34,9 @@ func GetTaskStats() (gin.H, error) {
 		return nil, res.Error
 	}
 	data := gin.H{
-		"waiting":  waitingCount,
+		"Waiting":  waitingCount,
 		"Pending":  pendingCount,
-		"finished": finishedCount,
+		"Finished": finishedCount,
 	}
 	return data, nil
 }

@@ -19,5 +19,5 @@ type RawData struct {
 	UserID       uint64
 	TaskID       uint64 `gorm:"index:idx_task_id_number,unique,priority:1"`
 	SerialNumber uint64 `gorm:"index:idx_task_id_number,unique,priority:2"`
-	Data         string
+	Data         []byte
 }

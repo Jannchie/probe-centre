@@ -4,6 +4,7 @@ Copyright © 2020 Jannchie <jannchie@gmail.com>
 package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/Jannchie/probe-centre/db"
@@ -12,6 +13,7 @@ import (
 )
 
 func main() {
+	log.SetFlags(log.Llongfile | log.LstdFlags)
 	db.Init(os.Getenv("PROBE_PG_DSN"))
 	go job.Init()
 	_ = router.Init().Run(":12000")

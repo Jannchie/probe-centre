@@ -32,12 +32,7 @@ func GetTask(c *gin.Context) {
 
 // PostRaw update task and insert data data
 func PostRaw(c *gin.Context) {
-	var form struct {
-		Data   interface{} `form:"Data"`
-		TaskID uint64      `form:"TaskID"`
-		Number uint64      `form:"Number"`
-	}
-
+	var form model.RawDataForm
 	user, err := util.GetUserFromCtx(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -56,7 +51,7 @@ func PostRaw(c *gin.Context) {
 	}
 }
 
-func ListTaskStats(c *gin.Context) {
+func GetTaskStats(c *gin.Context) {
 	data, err := service.GetTaskStats()
 	if util.ShouldReturn(c, err) {
 		return

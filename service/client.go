@@ -1,23 +1,14 @@
 package service
 
 import (
-	"encoding/json"
 	"log"
 	"time"
+
+	cmd "github.com/Jannchie/probe-centre/constant"
 
 	"github.com/Jannchie/probe-centre/model"
 	"github.com/gorilla/websocket"
 )
-
-type probeCmd struct {
-	CMD  string `json:"CMD"`
-	Data string `json:"Data,omitempty"`
-}
-
-type CentreMsg struct {
-	Msg string `json:"Msg"`
-	URL string `json:"URL,omitempty"`
-}
 
 func StartWebSocket(ws *websocket.Conn, user model.User) {
 	grand := make(chan struct{})
@@ -29,23 +20,20 @@ func StartWebSocket(ws *websocket.Conn, user model.User) {
 		started := false
 		pause := false
 		for {
-			var cmd probeCmd
-			err := ws.ReadJSON(&cmd)
+			var probeCmd model.ProbeCmd
+			err := ws.ReadJSON(&probeCmd)
 			if err != nil {
 				log.Println(err)
 				return
 			}
-			log.Println(cmd)
-			switch cmd.CMD {
+			log.Println(probeCmd.CMD)
+			switch probeCmd.CMD {
 			case "":
 				return
-			case "start":
+			case cmd.START:
 				go func() {
 					if !started {
-						err := ws.WriteJSON(CentreMsg{"start", ""})
-						if err != nil {
-							log.Println(err)
-						}
+						_ = ws.WriteJSON(model.StartMsg)
 						started = true
 						const duration = time.Second * 10
 						ticker := time.NewTicker(duration)
@@ -64,31 +52,29 @@ func StartWebSocket(ws *websocket.Conn, user model.User) {
 						}
 					}
 				}()
-			case "switch":
+			case cmd.SWITCH:
 				pause = !pause
 				var err error
 				if pause {
-					err = ws.WriteJSON(CentreMsg{"paused", ""})
+					err = ws.WriteJSON(model.PausedMsg)
 				} else {
-					err = ws.WriteJSON(CentreMsg{"resume", ""})
+					err = ws.WriteJSON(model.ResumedMsg)
 				}
 				if err != nil {
 					log.Println(err)
 				}
-			case "fin":
-				err = ws.WriteJSON(CentreMsg{"finished", ""})
+			case cmd.FINISH:
+				err = ws.WriteJSON(model.FinishedMsg)
 				if err != nil {
 					log.Println(err)
 				}
 				grand <- struct{}{}
-			case "commit":
-				data := model.RawDataForm{}
-				err = json.Unmarshal([]byte(cmd.Data), &data)
+			case cmd.COMMIT:
 				if err != nil {
 					log.Println(err)
 					continue
 				}
-				err = SaveRawData(data, user)
+				err = SaveRawData(probeCmd.Data, user)
 				if err != nil {
 					log.Println(err)
 					continue

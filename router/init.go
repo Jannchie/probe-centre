@@ -61,10 +61,22 @@ func RecordIP(c *gin.Context) {
 	}
 }
 
+func Cors(c *gin.Context) {
+	method := c.Request.Method
+	c.Header("Access-Control-Allow-Origin", "*")
+	c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
+	c.Header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, token")
+	c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Cache-Control, Content-Language, Content-Type")
+	c.Header("Access-Control-Allow-Credentials", "true")
+	if method == "OPTIONS" {
+		c.AbortWithStatus(http.StatusNoContent)
+	}
+	c.Next()
+}
+
 // InitRouter init the router
 func InitRouter(r *gin.Engine) {
-	r.Use(RecordIP)
-
+	r.Use(Cors).Use(RecordIP)
 	r.GET("/ping", controller.Ping).
 		POST("/user", controller.CreateUser).
 		GET("/user", controller.GetUser).
@@ -81,7 +93,7 @@ func InitRouter(r *gin.Engine) {
 		Use(AuthRequired).
 		GET("/", controller.GetTask).
 		POST("/", controller.PostTask).
-		GET("/stats", controller.ListTaskStats)
+		GET("/stats", controller.GetTaskStats)
 
 	r.
 		Use(AuthRequired).
