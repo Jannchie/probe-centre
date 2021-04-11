@@ -9,7 +9,7 @@ import (
 )
 
 func TestLoginByForm(t *testing.T) {
-	test.Init()
+	test.InitDB()
 	test.CreateTestUser()
 	type args struct {
 		form model.LoginForm

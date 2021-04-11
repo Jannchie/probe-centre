@@ -7,6 +7,6 @@ import (
 )
 
 func TestCreateBiliTasks(t *testing.T) {
-	test.Init()
+	test.InitDB()
 	CreateBiliTasks()
 }

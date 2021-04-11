@@ -19,7 +19,7 @@ func TestInit(t *testing.T) {
 }
 
 func TestAuthRequired(t *testing.T) {
-	test.Init()
+	test.InitDB()
 	test.CreateTestUser()
 
 	type args struct {
@@ -59,7 +59,7 @@ func TestAuthRequired(t *testing.T) {
 
 func TestRecordIP(t *testing.T) {
 
-	test.Init()
+	test.InitDB()
 	test.CreateTestUser()
 
 	ctx1, _ := gin.CreateTestContext(httptest.NewRecorder())

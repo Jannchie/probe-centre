@@ -48,7 +48,7 @@ func testWSHandleWithToken(handle func(c *gin.Context), token string) (s *httpte
 }
 
 func TestMain(m *testing.M) {
-	test.Init()
+	test.InitDB()
 	test.CreateTestUser()
 	os.Exit(m.Run())
 }

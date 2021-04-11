@@ -5,12 +5,12 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
 	cmd "github.com/Jannchie/probe-centre/constant"
 	"github.com/Jannchie/probe-centre/model"
-
 	"github.com/Jannchie/probe-centre/test"
 
 	"github.com/gorilla/websocket"
@@ -28,15 +28,13 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	StartWebSocket(c, user)
 }
 func TestStartWebSocket(t *testing.T) {
-	test.Init()
+	test.InitDB()
 	test.CreateTestUser()
-	s := httptest.NewServer(http.HandlerFunc(handle))
-	defer s.Close()
-	u := "ws" + strings.TrimPrefix(s.URL, "http")
-	ws, _, err := websocket.DefaultDialer.Dial(u, nil)
+	s, ws, err := createWebSocketConnect()
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
+	defer s.Close()
 	defer ws.Close()
 	var res model.CentreMsg
 
@@ -69,4 +67,48 @@ func TestStartWebSocket(t *testing.T) {
 	_ = ws.ReadJSON(&res)
 	assert.Equal(t, res.Code, model.FinishedMsg.Code)
 
+}
+
+func createWebSocketConnect() (*httptest.Server, *websocket.Conn, error) {
+	s := httptest.NewServer(http.HandlerFunc(handle))
+	u := "ws" + strings.TrimPrefix(s.URL, "http")
+	ws, _, err := websocket.DefaultDialer.Dial(u, nil)
+	return s, ws, err
+}
+
+func TestGetClientConnectCount(t *testing.T) {
+	test.InitDB()
+	test.CreateTestUser()
+	s, ws, err := createWebSocketConnect()
+
+	// need to wait record created
+	time.Sleep(time.Second)
+
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+
+	defer s.Close()
+	defer ws.Close()
+
+	var res model.CentreMsg
+	tests := []struct {
+		name      string
+		wantCount int64
+	}{
+		{"With 1 client", 1},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if gotCount := GetClientConnectCount(); gotCount != tt.wantCount {
+				t.Errorf("GetClientConnectCount() = %v, want %v", gotCount, tt.wantCount)
+			}
+		})
+	}
+
+	_ = ws.WriteJSON(model.ProbeCmd{
+		CMD: cmd.START,
+	})
+
+	_ = ws.ReadJSON(&res)
 }

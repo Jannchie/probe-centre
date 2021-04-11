@@ -69,7 +69,7 @@ func TestRefreshToken(t *testing.T) {
 }
 
 func TestLogin(t *testing.T) {
-	test.Init()
+	test.InitDB()
 	test.CreateTestUser()
 	w := testHandle(Login, `{"Mail":"test@test.com","Password":"123456"}`)
 	assert.Equal(t, 200, w.Code)

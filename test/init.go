@@ -8,9 +8,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func Init() {
+func InitDB() {
 	var err error
-	db.DB, err = gorm.Open(sqlite.Open("file::memory:"), &gorm.Config{})
+	db.DB, err = gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}

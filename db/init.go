@@ -1,6 +1,8 @@
 package db
 
 import (
+	"log"
+
 	"github.com/Jannchie/probe-centre/model"
 	"github.com/Jannchie/probe-centre/repository"
 	"gorm.io/driver/postgres"
@@ -24,11 +26,15 @@ func Init(dsn string) {
 }
 
 func InitDB() {
-	_ = DB.AutoMigrate(
+	err := DB.AutoMigrate(
 		&model.Task{},
 		&model.User{},
 		&model.RawJSONData{},
 		&model.IPRecord{},
+		&model.ClientRecord{},
 	)
+	if err != nil {
+		log.Println(err)
+	}
 	repository.Init(DB)
 }

@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/Jannchie/probe-centre/db"
+
 	"github.com/Jannchie/probe-centre/model"
 
 	"github.com/Jannchie/probe-centre/test"
@@ -12,7 +14,8 @@ import (
 )
 
 func TestGetTaskStats(t *testing.T) {
-	test.Init()
+	test.InitDB()
+	db.DB.Exec("DELETE FROM tasks")
 	tests := []struct {
 		name    string
 		want    gin.H
@@ -35,7 +38,7 @@ func TestGetTaskStats(t *testing.T) {
 }
 
 func TestGetOneTask(t *testing.T) {
-	test.Init()
+	test.InitDB()
 	type args struct {
 		task *model.Task
 	}

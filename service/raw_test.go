@@ -11,18 +11,20 @@ import (
 )
 
 func TestSaveRawData(t *testing.T) {
-	test.Init()
+	test.InitDB()
 	test.CreateTestUser()
 	var u model.User
 	db.DB.Take(&u)
 	db.DB.Create(&model.Task{
-		URL:      "http://www.baidu.com",
+		URL:      "https://www.baidu.com",
 		Interval: 3600,
 	})
 	type args struct {
 		form model.RawDataForm
 		user model.User
 	}
+	var count int64
+	db.DB.Model(&model.Task{}).Count(&count)
 	tests := []struct {
 		name    string
 		args    args
@@ -40,7 +42,7 @@ func TestSaveRawData(t *testing.T) {
 		}, u}, true},
 		{"ok", args{model.RawDataForm{
 			Data:   "",
-			TaskID: 1,
+			TaskID: uint64(count),
 			Number: 0,
 		}, u}, false},
 	}

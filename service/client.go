@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Jannchie/probe-centre/db"
+
 	"go.uber.org/atomic"
 
 	cmd "github.com/Jannchie/probe-centre/constant"
@@ -13,6 +15,11 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+func GetClientConnectCount() (count int64) {
+	db.DB.Model(&model.ClientRecord{}).Count(&count)
+	return
+}
+
 func WriteJsonWithLock(ws *websocket.Conn, m *sync.Mutex, v interface{}) error {
 	m.Lock()
 	defer m.Unlock()
@@ -20,10 +27,22 @@ func WriteJsonWithLock(ws *websocket.Conn, m *sync.Mutex, v interface{}) error {
 	return err
 }
 
+func GetClientRecord(ws *websocket.Conn, user model.User) model.ClientRecord {
+	remoteIP := ws.RemoteAddr().String()
+	userID := user.ID
+	return model.ClientRecord{
+		IP:     remoteIP,
+		UserID: userID,
+	}
+}
+
 func StartWebSocket(ws *websocket.Conn, user model.User) {
+	clientRecord := GetClientRecord(ws, user)
+	_ = db.DB.Create(&clientRecord)
 	grand := make(chan struct{})
 	defer func() {
 		<-grand
+		_ = db.DB.Delete(&clientRecord)
 		ws.Close()
 	}()
 	m := sync.Mutex{}
