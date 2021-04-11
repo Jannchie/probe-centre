@@ -12,7 +12,7 @@ var (
 	DB *gorm.DB
 )
 
-// InitDB initializes the mysql database.
+// Init initializes the mysql database.
 func Init(dsn string) {
 	// Get Database DSN From System Environment Variable
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})

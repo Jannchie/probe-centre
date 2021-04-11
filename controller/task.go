@@ -36,8 +36,8 @@ func PostRaw(c *gin.Context) {
 	user, err := util.GetUserFromCtx(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"code": code.FAILED,
-			"msg":  err.Error(),
+			"Code": code.FAILED,
+			"Msg":  err.Error(),
 		})
 		return
 	}
@@ -69,20 +69,20 @@ func PostTask(c *gin.Context) {
 	if util.ShouldReturn(c, err) {
 		return
 	}
-	// Min interval =  1 Hour
+	// Min interval = 1 Hour
 	user, err := util.GetUserFromCtx(c)
 	if form.Interval < time.Hour/time.Second {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"code": code.FAILED,
-			"msg":  "Min interval is 1 Hour!",
+			"Code": code.FAILED,
+			"Msg":  "Min interval is 1 Hour!",
 		})
 		return
 	}
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"code": code.FAILED,
-			"msg":  err.Error(),
+			"Code": code.FAILED,
+			"Msg":  err.Error(),
 		})
 		return
 	}
@@ -93,8 +93,8 @@ func PostTask(c *gin.Context) {
 		SeriesNumber: 0,
 	}); res.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"code": code.FAILED,
-			"msg":  res.Error.Error(),
+			"Code": code.FAILED,
+			"Msg":  res.Error.Error(),
 		})
 		return
 	}

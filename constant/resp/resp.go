@@ -8,7 +8,7 @@ import (
 
 var (
 	OK = gin.H{
-		"code": code.OK,
-		"msg":  msg.OK,
+		"Code": code.OK,
+		"Msg":  msg.OK,
 	}
 )

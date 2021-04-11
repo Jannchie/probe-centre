@@ -56,7 +56,7 @@ func StartWebSocket(ws *websocket.Conn, user model.User) {
 								task := model.Task{}
 								err = GetOneTask(&task)
 								if err != nil {
-									continue
+									_ = WriteJsonWithLock(ws, &m, model.EmptyMsg)
 								}
 								_ = UpdatePend(&task)
 								_ = WriteJsonWithLock(ws, &m, task)

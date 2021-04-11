@@ -27,8 +27,8 @@ func CreateUser(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&form); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"code": code.FAILED,
-			"msg":  err.Error(),
+			"Code": code.FAILED,
+			"Msg":  err.Error(),
 		})
 		return
 	}
@@ -36,8 +36,8 @@ func CreateUser(c *gin.Context) {
 	user := model.User{}
 	if count := repository.User.CountByMail(form.Mail); count != 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"code": -1,
-			"msg":  "Mail already been used.",
+			"Code": -1,
+			"Msg":  "Mail already been used.",
 		})
 		return
 	}
@@ -94,8 +94,8 @@ func GetUserByToken(c *gin.Context, token string) {
 	user := model.User{}
 	if res := db.DB.First(&user, "token = ?", token); res.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"code": -1,
-			"msg":  res.Error.Error(),
+			"Code": -1,
+			"Msg":  res.Error.Error(),
 		})
 		return
 	}
@@ -112,14 +112,14 @@ func UpdateUser(c *gin.Context) {
 	var u UpdateUserForm
 	if err := c.ShouldBindJSON(&u); err != nil {
 		c.JSON(400, gin.H{
-			"code": -1,
-			"msg":  err.Error(),
+			"Code": -1,
+			"Msg":  err.Error(),
 		})
 		return
 	}
 	user := model.User{}
 	db.DB.Model(&user).Where("token", c.Request.Header.Get("token")).Updates(model.User{Name: u.Name})
-	c.JSON(http.StatusOK, gin.H{"code": 1, "msg": msg.OK, "data": user})
+	c.JSON(http.StatusOK, gin.H{"Code": 1, "Msg": msg.OK, "Data": user})
 }
 
 // GetMe is the callback function to get user's information.
@@ -137,7 +137,7 @@ func RefreshToken(c *gin.Context) {
 	if util.ShouldReturn(c, res.Error) {
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"code": 1, "data": user.Token, "msg": msg.OK})
+	c.JSON(http.StatusOK, gin.H{"Code": 1, "Data": user.Token, "Msg": msg.OK})
 }
 
 // Login ist the callback function for login
@@ -146,8 +146,8 @@ func Login(c *gin.Context) {
 	var form model.LoginForm
 	if err := c.ShouldBindJSON(&form); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"code": -1,
-			"msg":  err.Error(),
+			"Code": -1,
+			"Msg":  err.Error(),
 		})
 		return
 	}

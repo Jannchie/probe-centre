@@ -10,7 +10,7 @@ import (
 // ReturnError add error json data
 func ReturnError(c *gin.Context, err error) {
 	c.JSON(http.StatusBadRequest, gin.H{
-		"code": code.FAILED,
-		"msg":  err.Error(),
+		"Code": code.FAILED,
+		"Msg":  err.Error(),
 	})
 }

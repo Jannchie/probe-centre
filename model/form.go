@@ -23,8 +23,9 @@ type CentreMsg struct {
 }
 
 var (
-	StartMsg    = CentreMsg{Msg: "Probe Started", Code: 1}
-	PausedMsg   = CentreMsg{Msg: "Probe Paused", Code: 2}
-	ResumedMsg  = CentreMsg{Msg: "Probe Resumed", Code: 3}
-	FinishedMsg = CentreMsg{Msg: "Probe Finished", Code: 4}
+	StartMsg    = CentreMsg{Msg: "Start sending tasks to the probe", Code: 1}
+	PausedMsg   = CentreMsg{Msg: "The tasks have stopped sending", Code: 2}
+	ResumedMsg  = CentreMsg{Msg: "Recovery tasks transfer", Code: 3}
+	FinishedMsg = CentreMsg{Msg: "Disconnected from probe.", Code: 4}
+	EmptyMsg    = CentreMsg{Msg: "There are currently no tasks to perform.", Code: 5}
 )

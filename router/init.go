@@ -19,8 +19,8 @@ func AuthRequired(c *gin.Context) {
 	token := c.Request.Header.Get("token")
 	if token == "" {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"code": code.FAILED,
-			"msg":  "Login required.",
+			"Code": code.FAILED,
+			"Msg":  "Login required.",
 		})
 		return
 	}
@@ -28,8 +28,8 @@ func AuthRequired(c *gin.Context) {
 	res := db.DB.First(&user, "token = ?", token)
 	if res.Error != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"code": code.FAILED,
-			"msg":  res.Error.Error(),
+			"Code": code.FAILED,
+			"Msg":  res.Error.Error(),
 		})
 		return
 	}
