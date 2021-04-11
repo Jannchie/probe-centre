@@ -63,9 +63,9 @@ func TestRecordIP(t *testing.T) {
 	test.CreateTestUser()
 
 	ctx1, _ := gin.CreateTestContext(httptest.NewRecorder())
-	ctx1.Request = httptest.NewRequest("get", "/test", nil)
+	ctx1.Request = httptest.NewRequest("GET", "/test", nil)
 	ctx2, _ := gin.CreateTestContext(httptest.NewRecorder())
-	ctx2.Request = httptest.NewRequest("get", "/test", nil)
+	ctx2.Request = httptest.NewRequest("GET", "/test", nil)
 	ctx2.Request.Header.Set("token", "00000000-0000-0000-0000-000000000000")
 
 	type args struct {
@@ -90,4 +90,16 @@ func TestRecordIP(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCors(t *testing.T) {
+	r := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(r)
+	ctx.Request = httptest.NewRequest("GET", "/test", nil)
+	Cors(ctx)
+	assert.Equal(t, "Origin, X-Requested-With, Content-Type, Accept, Authorization, token", r.Header().Get("Access-Control-Allow-Headers"))
+	assert.Equal(t, "*", r.Header().Get("Access-Control-Allow-Origin"))
+	ctx2, _ := gin.CreateTestContext(r)
+	ctx2.Request = httptest.NewRequest("OPTIONS", "/test", nil)
+	Cors(ctx2)
 }
