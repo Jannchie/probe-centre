@@ -26,3 +26,8 @@ func ClientWebSocketHandle(c *gin.Context) {
 	ws, _ := upGrader.Upgrade(c.Writer, c.Request, nil)
 	service.StartWebSocket(ws, user)
 }
+
+func ClientsStatHandle(c *gin.Context) {
+	res := service.GetClientsStat()
+	c.JSON(http.StatusOK, res)
+}

@@ -54,7 +54,7 @@ func RecordIP(c *gin.Context) {
 		Time: time.Now().UTC(),
 	}
 	db.DB.Create(&record)
-	log.Println(ip)
+	log.Printf("[%s](%s)\n", ip, c.FullPath())
 	u, err := util.GetUserFromCtx(c)
 	if err == nil {
 		db.DB.Model(&u).Update("ip", c.ClientIP())
@@ -68,6 +68,7 @@ func Cors(c *gin.Context) {
 	c.Header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, token")
 	c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Cache-Control, Content-Language, Content-Type")
 	c.Header("Access-Control-Allow-Credentials", "true")
+
 	if method == "OPTIONS" {
 		c.AbortWithStatus(http.StatusNoContent)
 	}
@@ -81,7 +82,8 @@ func InitRouter(r *gin.Engine) {
 		POST("/user", controller.CreateUser).
 		GET("/user", controller.GetUser).
 		GET("/token", controller.Login).
-		POST("/session", controller.Login)
+		POST("/session", controller.Login).
+		GET("client/stat", controller.ClientsStatHandle)
 
 	r.Group("/user").
 		Use(AuthRequired).

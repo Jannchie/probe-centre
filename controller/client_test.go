@@ -5,6 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gin-gonic/gin"
+
 	"github.com/Jannchie/probe-centre/model"
 
 	"github.com/gorilla/websocket"
@@ -24,4 +26,24 @@ func TestClientWebSocket(t *testing.T) {
 	s, _, resp, _ = testWSHandleWithToken(ClientWebSocketHandle, "")
 	assert.Equal(t, 400, resp.StatusCode)
 	s.Close()
+}
+
+func TestClientsStatHandle(t *testing.T) {
+	ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+	type args struct {
+		c *gin.Context
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			"base", args{ctx},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ClientsStatHandle(ctx)
+		})
+	}
 }

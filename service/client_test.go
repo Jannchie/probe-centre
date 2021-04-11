@@ -3,9 +3,14 @@ package service
 import (
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/Jannchie/probe-centre/db"
+
+	"github.com/gin-gonic/gin"
 
 	"github.com/stretchr/testify/assert"
 
@@ -111,4 +116,23 @@ func TestGetClientConnectCount(t *testing.T) {
 	})
 
 	_ = ws.ReadJSON(&res)
+}
+
+func TestGetClientsStat(t *testing.T) {
+	test.InitDB()
+	var count int64
+	db.DB.Model(&model.ClientRecord{}).Count(&count)
+	tests := []struct {
+		name string
+		want gin.H
+	}{
+		{"0", gin.H{"Count": count}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := GetClientsStat(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetClientsStat() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gin-gonic/gin"
+
 	"github.com/Jannchie/probe-centre/db"
 
 	"go.uber.org/atomic"
@@ -113,4 +115,10 @@ func StartWebSocket(ws *websocket.Conn, user model.User) {
 			}
 		}
 	}()
+}
+
+func GetClientsStat() gin.H {
+	return gin.H{
+		"Count": GetClientConnectCount(),
+	}
 }
