@@ -21,7 +21,7 @@ func upsertTask(task *model.Task) {
 	db.DB.Clauses(clause.OnConflict{DoNothing: true}).Create(task)
 }
 
-func createBiliTasks() {
+func CreateBiliTasks() {
 	rankTypes := [...]string{"rookie", "origin", "all"}
 	tidList := [...]int{0, 5, 181, 155, 119, 217, 211, 160, 188, 36, 4, 129, 3, 1, 168}
 	for _, rankType := range rankTypes {

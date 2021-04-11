@@ -6,7 +6,7 @@ import (
 	"github.com/Jannchie/probe-centre/test"
 )
 
-func TestJobs(t *testing.T) {
+func TestCreateBiliTasks(t *testing.T) {
 	test.Init()
-	Init()
+	CreateBiliTasks()
 }

@@ -9,7 +9,11 @@ import (
 )
 
 func Init() {
-	db.DB, _ = gorm.Open(sqlite.Open("file::memory:"), &gorm.Config{})
+	var err error
+	db.DB, err = gorm.Open(sqlite.Open("file::memory:"), &gorm.Config{})
+	if err != nil {
+		panic(err)
+	}
 	db.InitDB()
 }
 
