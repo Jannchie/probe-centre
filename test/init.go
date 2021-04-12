@@ -10,11 +10,13 @@ import (
 
 func InitDB() {
 	var err error
-	db.DB, err = gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
-	if err != nil {
-		panic(err)
+	if db.DB == nil {
+		db.DB, err = gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+		if err != nil {
+			panic(err)
+		}
+		db.InitDB()
 	}
-	db.InitDB()
 }
 
 func CreateTestUser() model.User {

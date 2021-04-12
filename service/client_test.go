@@ -3,6 +3,7 @@ package service
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -33,8 +34,6 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	StartWebSocket(c, user)
 }
 func TestStartWebSocket(t *testing.T) {
-	test.InitDB()
-	test.CreateTestUser()
 	s, ws, err := createWebSocketConnect()
 	if err != nil {
 		t.Fatalf("%v", err)
@@ -82,12 +81,11 @@ func createWebSocketConnect() (*httptest.Server, *websocket.Conn, error) {
 }
 
 func TestGetClientConnectCount(t *testing.T) {
-	test.InitDB()
-	test.CreateTestUser()
+
 	s, ws, err := createWebSocketConnect()
 
 	// need to wait record created
-	time.Sleep(time.Second)
+	time.Sleep(time.Second * 2)
 
 	if err != nil {
 		t.Fatalf("%v", err)
@@ -135,4 +133,11 @@ func TestGetClientsStat(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestMain(m *testing.M) {
+	test.InitDB()
+	test.CreateTestUser()
+	code := m.Run()
+	os.Exit(code)
 }
