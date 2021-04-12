@@ -71,7 +71,7 @@ func PostTask(c *gin.Context) {
 	}
 	// Min interval = 1 Hour
 	user, err := util.GetUserFromCtx(c)
-	if form.Interval < time.Hour/time.Second {
+	if form.Interval < time.Hour {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"Code": code.FAILED,
 			"Msg":  "Min interval is 1 Hour!",
@@ -88,7 +88,7 @@ func PostTask(c *gin.Context) {
 	}
 	if res := db.DB.Model(&model.Task{}).Create(&model.Task{
 		URL:          form.URL,
-		Interval:     form.Interval * time.Second,
+		Interval:     form.Interval,
 		UserID:       user.ID,
 		SeriesNumber: 0,
 	}); res.Error != nil {

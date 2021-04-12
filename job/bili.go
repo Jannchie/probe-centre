@@ -29,7 +29,7 @@ func CreateBiliTasks() {
 			url := fmt.Sprintf(BiliVideoRankAPI, tid, rankType)
 			task := model.Task{
 				URL:      url,
-				Interval: time.Hour / time.Second,
+				Interval: time.Hour,
 			}
 			upsertTask(&task)
 		}

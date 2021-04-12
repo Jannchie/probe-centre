@@ -62,7 +62,7 @@ func SaveRawData(form model.RawDataForm, user model.User) error {
 	db.DB.Where("id = ?", taskID).
 		Updates(model.Task{
 			SeriesNumber: number + 1,
-			Next:         time.Now().UTC().Add(task.Interval * time.Second),
+			Next:         time.Now().UTC().Add(task.Interval),
 		})
 	return nil
 }
