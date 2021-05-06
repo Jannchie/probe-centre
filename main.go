@@ -4,12 +4,11 @@ Copyright © 2020 Jannchie <jannchie@gmail.com>
 package main
 
 import (
-	"log"
-	"os"
-
 	"github.com/Jannchie/probe-centre/db"
 	"github.com/Jannchie/probe-centre/job"
 	"github.com/Jannchie/probe-centre/router"
+	"log"
+	"os"
 )
 
 func main() {

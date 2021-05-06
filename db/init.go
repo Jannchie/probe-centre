@@ -27,6 +27,7 @@ func Init(dsn string) {
 
 func InitDB() {
 	err := DB.AutoMigrate(
+		&model.Subject{},
 		&model.Task{},
 		&model.User{},
 		&model.RawJSONData{},

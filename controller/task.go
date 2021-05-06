@@ -15,6 +15,61 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func CreateSubjectHandle(c *gin.Context) {
+	var subject = model.Subject{}
+	err := c.ShouldBindJSON(&subject)
+	if util.ShouldReturn(c, err) {
+		return
+	}
+	err = service.CreateSubject(subject)
+	if util.ShouldReturn(c, err) {
+		return
+	}
+	c.JSON(http.StatusOK, resp.OK)
+}
+func UpdateSubjectHandle(c *gin.Context) {
+	var subject = model.Subject{}
+	err := c.ShouldBindJSON(&subject)
+	if util.ShouldReturn(c, err) {
+		return
+	}
+	err = service.UpdateSubject(subject)
+	if util.ShouldReturn(c, err) {
+		return
+	}
+	c.JSON(http.StatusOK, resp.OK)
+}
+
+func DeleteSubjectHandle(c *gin.Context) {
+	var subject = model.Subject{}
+	err := c.ShouldBindJSON(&subject)
+	if util.ShouldReturn(c, err) {
+		return
+	}
+	err = service.DeleteSubject(subject)
+	if util.ShouldReturn(c, err) {
+		return
+	}
+	c.JSON(http.StatusOK, resp.OK)
+}
+
+func ListSubjectsHandle(c *gin.Context) {
+	type PageInfo struct {
+		Page     int `form:"p"`
+		PageSize int `form:"ps"`
+	}
+	pageInfo := PageInfo{}
+	err := c.ShouldBindQuery(&pageInfo)
+	if util.ShouldReturn(c, err) {
+		return
+	}
+	res, err := service.ListSubjects(pageInfo.Page, pageInfo.PageSize)
+	if util.ShouldReturn(c, err) {
+		return
+	}
+	c.JSON(http.StatusOK, res)
+}
+
 // GetTask get the task that is need to do and not pending.
 func GetTask(c *gin.Context) {
 	var task = model.Task{}
@@ -61,9 +116,9 @@ func GetTaskStats(c *gin.Context) {
 
 func PostTask(c *gin.Context) {
 	var form struct {
-		URL      string        `form:"URL"`
-		Subject  string        `form:"Subject"`
-		Interval time.Duration `form:"Interval"`
+		URL       string        `form:"URL"`
+		SubjectID int           `form:"SubjectID"`
+		Interval  time.Duration `form:"Interval"`
 	}
 	err := c.ShouldBindJSON(&form)
 	if util.ShouldReturn(c, err) {

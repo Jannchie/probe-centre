@@ -87,14 +87,21 @@ func InitRouter(r *gin.Engine) {
 
 	r.Group("/user").
 		Use(AuthRequired).
-		PUT("/", controller.UpdateUser).
+		PUT("", controller.UpdateUser).
 		GET("/me", controller.GetMe).
 		PUT("/token", controller.RefreshToken)
 
+	r.Group("subject").
+		Use(AuthRequired).
+		POST("", controller.CreateSubjectHandle).
+		PUT("", controller.UpdateSubjectHandle).
+		DELETE("", controller.DeleteSubjectHandle).
+		GET("", controller.ListSubjectsHandle)
+
 	r.Group("task").
 		Use(AuthRequired).
-		GET("/", controller.GetTask).
-		POST("/", controller.PostTask).
+		GET("", controller.GetTask).
+		POST("", controller.PostTask).
 		GET("/stats", controller.GetTaskStats)
 
 	r.
