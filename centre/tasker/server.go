@@ -73,7 +73,7 @@ func getOneTask(c *gin.Context, form struct {
 func listTasks(c *gin.Context, form TaskForm) {
 	var tasks []model.Task
 	res := common.DB.Where("url LIKE ?",
-		fmt.Sprintf("%s%%", form.Path)).Offset(form.Count).
+		fmt.Sprintf("%s%%", form.Path)).Limit(form.Count).
 		Find(&tasks)
 	if util.ShouldReturnWithCode(c, res.Error, http.StatusNotFound) {
 		return
