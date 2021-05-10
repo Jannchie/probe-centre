@@ -8,8 +8,8 @@ import (
 	"os"
 	"testing"
 
-	. "github.com/jannchie/probe/centre/common"
-	. "github.com/jannchie/probe/centre/common/model"
+	"github.com/jannchie/probe/common"
+	"github.com/jannchie/probe/common/model"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/assert/v2"
@@ -20,7 +20,7 @@ var router *gin.Engine
 
 func TestMain(m *testing.M) {
 	router = gin.Default()
-	InitDB()
+	common.InitDB()
 	tasker.Init(router)
 	Init(router)
 	exitCode := m.Run()
@@ -28,16 +28,16 @@ func TestMain(m *testing.M) {
 }
 
 func TestGetRawData(t *testing.T) {
-	task := Task{
+	task := model.Task{
 		ID:  120,
 		URL: "www.jannchie.com",
 	}
-	DB.Save(&task)
-	rawData := RawData{
+	common.DB.Save(&task)
+	rawData := model.RawData{
 		ID:   801,
-		Data: "test",
+		Data: []byte("test"),
 	}
-	DB.Save(&rawData)
+	common.DB.Save(&rawData)
 	var w *httptest.ResponseRecorder
 	var req *http.Request
 
@@ -59,9 +59,9 @@ func TestGetRawData(t *testing.T) {
 }
 
 func TestPostRawDataHandle(t *testing.T) {
-	var tasks []Task
-	DB.Find(&tasks)
-	DB.Create(&Task{
+	var tasks []model.Task
+	common.DB.Find(&tasks)
+	common.DB.Create(&model.Task{
 		URL: "www.abc.com",
 		ID:  123,
 	})

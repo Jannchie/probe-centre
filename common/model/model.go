@@ -3,6 +3,8 @@ package model
 import (
 	"time"
 
+	"gorm.io/datatypes"
+
 	"gorm.io/gorm"
 )
 
@@ -12,11 +14,20 @@ type Task struct {
 	URL       string    `gorm:"uniqueIndex:udx_url" json:"url"`
 	Collector string    `json:"collector"`
 }
+
 type RawData struct {
 	ID        uint64         `gorm:"primarykey" json:"id"`
 	CreatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
-	Data      string         `json:"data"`
+	Data      []byte         `json:"data"`
+	URL       string         `gorm:"index" json:"url"`
+}
+
+type RawJSONData struct {
+	ID        uint64         `gorm:"primarykey" json:"id"`
+	CreatedAt time.Time      `json:"-"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
+	Data      datatypes.JSON `json:"data"`
 	URL       string         `gorm:"index" json:"url"`
 }
 

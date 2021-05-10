@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/jannchie/probe/centre/common"
+	"github.com/jannchie/probe/common"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/assert/v2"
@@ -18,7 +18,7 @@ var router *gin.Engine
 
 func TestMain(m *testing.M) {
 	router = gin.Default()
-	InitDB()
+	common.InitDB()
 	Init(router)
 	exitCode := m.Run()
 	os.Exit(exitCode)

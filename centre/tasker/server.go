@@ -6,9 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jannchie/probe/centre/common"
-	"github.com/jannchie/probe/centre/common/model"
-	"github.com/jannchie/probe/centre/common/util"
+	. "github.com/jannchie/probe/common"
+	. "github.com/jannchie/probe/common/model"
+	. "github.com/jannchie/probe/common/util"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,93 +22,107 @@ func GetTaskStatsHandle(c *gin.Context) {
 		Path string `form:"path"`
 	}
 	err := c.ShouldBindQuery(&form)
-	if util.ShouldReturn(c, err) {
+	if ShouldReturn(c, err) {
 		return
 	}
 	var res = TaskStats{}
-	common.DB.Model(&model.Task{}).Where("url LIKE ?", fmt.Sprintf("%s%%", form.Path)).Count(&res.Sum)
+	DB.Model(&Task{}).Where("url LIKE ?", fmt.Sprintf("%s%%", form.Path)).Count(&res.Sum)
 	c.JSON(http.StatusOK, res)
 }
 
 var mutex sync.Mutex
 
 type TaskForm struct {
-	Path  string `form:"path"`
-	Count int    `form:"count"`
+	Path      string `form:"path"`
+	Count     int    `form:"count"`
+	Collector string `form:"collector"`
 }
 
 func GetTaskHandle(c *gin.Context) {
 	var form TaskForm
 	err := c.ShouldBindQuery(&form)
-	if util.ShouldReturn(c, err) {
+	if ShouldReturn(c, err) {
 		return
 	}
 	if form.Count <= 1 {
-		getOneTask(c, form)
+		task, err := GetOneTask(form)
+		if ShouldReturn(c, err) {
+			return
+		}
+		c.JSON(http.StatusOK, task)
 	} else {
-		listTasks(c, form)
+		tasks, err := ListTasks(form)
+		if ShouldReturn(c, err) {
+			return
+		}
+		c.JSON(http.StatusOK, tasks)
 	}
 }
 
-func getOneTask(c *gin.Context, form struct {
-	Path  string `form:"path"`
-	Count int    `form:"count"`
-}) {
-	err := c.ShouldBindQuery(&form)
-	if util.ShouldReturn(c, err) {
-		return
-	}
+func GetOneTask(form TaskForm) (Task, error) {
+	var task Task
 	mutex.Lock()
 	defer mutex.Unlock()
-	var task model.Task
 	now := time.Now().UTC()
-	res := common.DB.Where("url LIKE ? and created_at < ?", fmt.Sprintf("%s%%", form.Path), now).Take(&task)
-	if util.ShouldReturnWithCode(c, res.Error, http.StatusNotFound) {
-		return
+	res := DB.Where("url LIKE ? and created_at < ?", fmt.Sprintf("%s%%", form.Path), now).Take(&task)
+	if res.Error != nil {
+		return task, res.Error
 	}
-	common.DB.Model(&task).UpdateColumn("created_at", now.Add(time.Second*20))
-	c.JSON(http.StatusOK, task)
+	DB.Model(&task).UpdateColumn("created_at", now.Add(time.Second*20))
+	return task, nil
 }
 
-func listTasks(c *gin.Context, form TaskForm) {
-	var tasks []model.Task
-	res := common.DB.Where("url LIKE ?",
-		fmt.Sprintf("%s%%", form.Path)).Limit(form.Count).
+func ListTasks(form TaskForm) ([]Task, error) {
+	var tasks []Task
+	mutex.Lock()
+	defer mutex.Unlock()
+	res := DB.Where("url LIKE ? AND collector = ?",
+		fmt.Sprintf("%s%%", form.Path), form.Collector).Limit(form.Count).
 		Find(&tasks)
-	if util.ShouldReturnWithCode(c, res.Error, http.StatusNotFound) {
-		return
+	if res.Error != nil {
+		return nil, res.Error
 	}
-	c.JSON(http.StatusOK, tasks)
+	updateTasksCreatedAt(tasks)
+	return tasks, nil
+}
+
+func updateTasksCreatedAt(tasks []Task) {
+	now := time.Now().UTC()
+	idList := make([]uint64, len(tasks))
+	for index, item := range tasks {
+		idList[index] = item.ID
+	}
+	DB.Model(&Task{}).Where("id IN ?", idList).UpdateColumn("created_at", now.Add(time.Second*20))
 }
 
 func PostOneTaskHandle(c *gin.Context) {
-	var task model.Task
+	var task Task
 	err := c.ShouldBindJSON(&task)
-	if util.ShouldReturn(c, err) {
+	if ShouldReturn(c, err) {
 		return
 	}
-	res := common.DB.Create(&task)
-	if util.ShouldReturn(c, res.Error) {
+	res := DB.Create(&task)
+	if ShouldReturn(c, res.Error) {
 		return
 	}
-	util.ReturnOK(c)
+	ReturnOK(c)
 }
 
 func DeleteOneTaskHandle(c *gin.Context) {
-	var task model.Task
+	var task Task
 	err := c.ShouldBindJSON(&task)
-	if util.ShouldReturn(c, err) {
+	if ShouldReturn(c, err) {
 		return
 	}
-	res := common.DB.Delete(&task, "url = ?", task.URL)
-	if util.ShouldReturn(c, res.Error) {
+	res := DB.Delete(&task, "url = ?", task.URL)
+	if ShouldReturn(c, res.Error) {
 		return
 	}
-	util.ReturnOK(c)
+	ReturnOK(c)
 }
 
 func Init(engine *gin.Engine) {
-	_ = common.DB.AutoMigrate(&model.Task{})
+	_ = DB.AutoMigrate(&Task{})
 	engine.Group("/task").
 		GET("", GetTaskHandle).
 		POST("", PostOneTaskHandle).

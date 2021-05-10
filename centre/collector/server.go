@@ -1,13 +1,13 @@
 package collector
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
-	. "github.com/jannchie/probe/centre/common"
-	. "github.com/jannchie/probe/centre/common/model"
-	"github.com/jannchie/probe/centre/common/util"
-	. "github.com/jannchie/probe/centre/common/util"
+	"github.com/jannchie/probe/common"
+	"github.com/jannchie/probe/common/model"
+	. "github.com/jannchie/probe/common/util"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,16 +22,52 @@ func PostRawDataHandle(c *gin.Context) {
 	if ShouldReturn(c, err) {
 		return
 	}
-	rawData := RawData{
-		Data: form.Data,
-		URL:  form.URL,
-	}
-	res := DB.Create(&rawData)
-	if ShouldReturn(c, res.Error) {
+	data := []byte(form.Data)
+	url := form.URL
+	taskID := form.TaskID
+	if err = SaveRawData(data, url, taskID); ShouldReturn(c, err) {
 		return
 	}
-	go DB.Delete(&Task{ID: form.TaskID})
 	ReturnOK(c)
+}
+
+func SaveRawData(data []byte, url string, taskID uint64) error {
+	if json.Valid(data) {
+		rawData := model.RawJSONData{
+			Data: data,
+			URL:  url,
+		}
+		if err := saveRawJSONData(rawData, taskID); err != nil {
+			return err
+		}
+	} else {
+		rawData := model.RawData{
+			Data: data,
+			URL:  url,
+		}
+		if err := saveRawData(rawData, taskID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func saveRawData(rawData model.RawData, taskID uint64) error {
+	res := common.DB.Create(&rawData)
+	if res.Error != nil {
+		return res.Error
+	}
+	go common.DB.Delete(&model.Task{ID: taskID})
+	return nil
+}
+
+func saveRawJSONData(rawData model.RawJSONData, taskID uint64) error {
+	res := common.DB.Create(&rawData)
+	if res.Error != nil {
+		return res.Error
+	}
+	go common.DB.Delete(&model.Task{ID: taskID})
+	return nil
 }
 
 func GetRawData(c *gin.Context) {
@@ -45,9 +81,9 @@ func GetRawData(c *gin.Context) {
 		return
 	}
 
-	var res []RawData
-	result := DB.Debug().Limit(form.Count).Find(&res, "url LIKE ?", fmt.Sprintf("%s%%", form.Path))
-	if util.ShouldReturn(c, result.Error) {
+	var res []model.RawData
+	result := common.DB.Debug().Limit(form.Count).Find(&res, "url LIKE ?", fmt.Sprintf("%s%%", form.Path))
+	if ShouldReturn(c, result.Error) {
 		return
 	}
 
@@ -56,13 +92,14 @@ func GetRawData(c *gin.Context) {
 		for idx, raw := range res {
 			idList[idx] = raw.ID
 		}
-		DB.Debug().Delete(&res, "id IN ?", idList)
+		common.DB.Debug().Delete(&res, "id IN ?", idList)
 	}
 
 	c.JSON(http.StatusOK, res)
 }
 
 func Init(engine *gin.Engine) {
-	_ = DB.AutoMigrate(&RawData{})
+	_ = common.DB.AutoMigrate(&model.RawData{})
+	_ = common.DB.AutoMigrate(&model.RawJSONData{})
 	engine.Group("/raw").POST("", PostRawDataHandle).GET("", GetRawData)
 }
