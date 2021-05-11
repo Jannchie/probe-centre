@@ -18,7 +18,7 @@ var router *gin.Engine
 
 func TestMain(m *testing.M) {
 	router = gin.Default()
-	common.InitDB()
+	_ = common.InitDB()
 	Init(router)
 	exitCode := m.Run()
 	os.Exit(exitCode)
@@ -48,7 +48,7 @@ func TestGetOneTaskHandle(t *testing.T) {
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("GET", "/task?path=x", nil)
 	router.ServeHTTP(w, req)
-	assert.Equal(t, 404, w.Code)
+	assert.Equal(t, 400, w.Code)
 	assert.Equal(t, "{\"code\":-1,\"msg\":\"record not found\"}", w.Body.String())
 
 	w = httptest.NewRecorder()
