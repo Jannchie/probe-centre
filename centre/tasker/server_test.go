@@ -29,7 +29,7 @@ func TestMain(m *testing.M) {
 func TestGetOneTaskHandle(t *testing.T) {
 	var w *httptest.ResponseRecorder
 	var req *http.Request
-
+	common.DB.Delete(&model.Task{}, "url = 'www.test.com'")
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("POST", "/task", strings.NewReader(`{"url":"www.test.com","interval":1}`))
 	router.ServeHTTP(w, req)

@@ -1,20 +1,19 @@
 package util
 
 import (
-	"fmt"
 	"testing"
 	"time"
 )
 
 func TestSpeedometer(t *testing.T) {
 	s := NewSpeedometer()
-	for range time.Tick(time.Millisecond * 100) {
+	for range time.Tick(time.Second) {
 		s.AddCount(1)
-		if s.count == 20 {
+		if s.count == 3 {
 			break
 		}
 	}
 	speedStat := s.GetStat()
-	fmt.Printf("%+v", speedStat)
+	t.Logf("%+v", speedStat)
 	s.Stop()
 }

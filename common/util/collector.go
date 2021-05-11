@@ -1,6 +1,7 @@
 package util
 
 import (
+	"sync"
 	"time"
 )
 
@@ -10,6 +11,7 @@ type speedometer struct {
 	guard    chan struct{}
 	duration time.Duration
 	history  []uint64
+	mutex    sync.RWMutex
 }
 
 type SpeedStat struct {
@@ -21,29 +23,35 @@ func (s *speedometer) GetStat() SpeedStat {
 	ss := SpeedStat{}
 	ss.Count = s.count
 	var delta uint64
-	if len(s.history) <= 1 {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	count := len(s.history)
+	if count <= 1 {
 		ss.Speed = 0
 		return ss
 	} else {
-		count := len(s.history) - 1
-		deltaTime := uint64(count) * uint64(s.duration)
-		delta = s.history[count] - s.history[0]
+		deltaTime := uint64(count-1) * uint64(s.duration)
+		delta = s.history[count-1] - s.history[0]
 		ss.Speed = delta * uint64(time.Minute) / deltaTime
 		return ss
 	}
 }
 
 func (s *speedometer) startTicker() {
-
+	s.mutex.Lock()
 	s.ticker = time.NewTicker(s.duration)
 	s.guard = make(chan struct{})
+	s.mutex.Unlock()
+
 	l := 0
 	for {
 		select {
 		case <-s.guard:
 			break
 		case <-s.ticker.C:
+			s.mutex.Lock()
 			s.history = append(s.history, s.count)
+			s.mutex.Unlock()
 			if l < 60 {
 				l += 1
 			} else {
@@ -54,12 +62,16 @@ func (s *speedometer) startTicker() {
 }
 
 func (s *speedometer) AddCount(n uint64) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	s.count += n
 }
 
 func (s *speedometer) Stop() {
+	s.mutex.Lock()
 	s.ticker.Stop()
 	s.guard <- struct{}{}
+	s.mutex.Unlock()
 }
 
 func NewSpeedometer() *speedometer {
