@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/jannchie/probe/centre/collector"
+	"github.com/jannchie/probe/client/collector"
 	"github.com/jannchie/probe/cmd"
 )
 

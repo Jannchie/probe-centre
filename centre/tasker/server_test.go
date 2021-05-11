@@ -8,6 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jannchie/probe/common/model"
+
 	"github.com/jannchie/probe/common"
 
 	"github.com/gin-gonic/gin"
@@ -85,6 +87,7 @@ func TestGetOneTaskHandle(t *testing.T) {
 	res = gin.H{}
 	_ = json.Unmarshal(w.Body.Bytes(), &res)
 	assert.Equal(t, float64(2), res["sum"])
+	common.DB.Delete(&model.Task{}, "url = ?", "www.test.com")
 }
 
 func TestListTaskHandle(t *testing.T) {
