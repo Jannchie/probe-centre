@@ -1,9 +1,12 @@
 FROM golang as builder
 
+ARG TARGETOS
+ARG TARGETARCH
+
 WORKDIR /app
 
 COPY ./ ./
-RUN GOOS=linux GOARCH=amd64 go build -o /probe /app/cmd/centre.go
+RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /probe /app/cmd/centre.go
 
 FROM scratch as prod
 

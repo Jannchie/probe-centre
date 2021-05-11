@@ -9,7 +9,12 @@ import (
 
 var DB *gorm.DB
 
-func InitDB() {
+func InitDB() error {
 	dsn := os.Getenv("PROBE_DSN")
-	DB, _ = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	var err error
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		return err
+	}
+	return nil
 }
