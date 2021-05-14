@@ -40,7 +40,6 @@ func (s *speedometer) GetStat() SpeedStat {
 func (s *speedometer) startTicker() {
 	s.mutex.Lock()
 	ticker := time.NewTicker(s.duration)
-	s.guard = make(chan struct{})
 	s.mutex.Unlock()
 
 	l := 0
@@ -97,6 +96,7 @@ func NewSpeedometer() *speedometer {
 	if s.duration == 0 {
 		s.duration = time.Second * 1
 	}
+	s.guard = make(chan struct{})
 	go s.startTicker()
 	go s.AutoPrint()
 	return s
