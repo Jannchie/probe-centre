@@ -1,6 +1,5 @@
 import logging
 import requests
-import json
 
 BASE_URL = "https://api.bilibili.com/x/web-interface/ranking/v2?rid=%d&type=%s"
 
@@ -19,13 +18,15 @@ def add_rank():
 
 
 def parse_rank():
-    url = "http://localhost:12000/raw?count=200&path=https://api.bilibili.com" \
-          "/x/web-interface/ranking/v2&consume=1"
+    url = "http://localhost:12000/raw?" \
+          "type=json&" \
+          "count=200&" \
+          "path=https://api.bilibili.com/x/web-interface/ranking/v2&consume=1"
     res = requests.get(url)
     data = res.json()
     for json_data in data:
-        data = json.loads(json_data['data'])
-        data_list = data.get('data').get('list')
+        d = json_data['data']
+        data_list = d.get('data').get('list')
         for video_data in data_list:
             try:
                 aid = video_data.get('aid')
