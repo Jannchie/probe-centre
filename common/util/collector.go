@@ -1,13 +1,13 @@
 package util
 
 import (
+	"fmt"
 	"sync"
 	"time"
 )
 
 type speedometer struct {
 	count    uint64
-	ticker   *time.Ticker
 	guard    chan struct{}
 	duration time.Duration
 	history  []uint64
@@ -39,16 +39,19 @@ func (s *speedometer) GetStat() SpeedStat {
 
 func (s *speedometer) startTicker() {
 	s.mutex.Lock()
-	s.ticker = time.NewTicker(s.duration)
+	ticker := time.NewTicker(s.duration)
 	s.guard = make(chan struct{})
 	s.mutex.Unlock()
 
 	l := 0
 	for {
 		select {
-		case <-s.guard:
-			break
-		case <-s.ticker.C:
+		case _, ok := <-s.guard:
+			if !ok {
+				ticker.Stop()
+				return
+			}
+		case <-ticker.C:
 			s.mutex.Lock()
 			s.history = append(s.history, s.count)
 			s.mutex.Unlock()
@@ -67,9 +70,24 @@ func (s *speedometer) AddCount(n uint64) {
 	s.count += n
 }
 
+func (s *speedometer) AutoPrint() {
+	ticker := time.NewTicker(time.Second * 5)
+	for {
+		select {
+		case <-ticker.C:
+			stat := s.GetStat()
+			fmt.Printf("Speed: %d/min Total: %d\n", stat.Speed, stat.Count)
+		case _, ok := <-s.guard:
+			if !ok {
+				ticker.Stop()
+				return
+			}
+		}
+	}
+}
+
 func (s *speedometer) Stop() {
 	s.mutex.Lock()
-	s.ticker.Stop()
 	s.guard <- struct{}{}
 	s.mutex.Unlock()
 }
@@ -80,5 +98,6 @@ func NewSpeedometer() *speedometer {
 		s.duration = time.Second * 1
 	}
 	go s.startTicker()
+	go s.AutoPrint()
 	return s
 }

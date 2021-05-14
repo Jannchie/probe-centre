@@ -75,27 +75,41 @@ func GetRawData(c *gin.Context) {
 		Path    string `form:"path"`
 		Count   int    `form:"count"`
 		Consume bool   `form:"consume"`
+		Type    string `form:"type"`
 	}
 	err := c.ShouldBindQuery(&form)
 	if ShouldReturn(c, err) {
 		return
 	}
-
-	var res []model.RawData
-	result := common.DB.Debug().Limit(form.Count).Find(&res, "url LIKE ?", fmt.Sprintf("%s%%", form.Path))
-	if ShouldReturn(c, result.Error) {
-		return
-	}
-
-	if form.Consume {
-		var idList = make([]uint64, len(res))
-		for idx, raw := range res {
-			idList[idx] = raw.ID
+	if form.Type == "test" {
+		var res []model.RawData
+		result := common.DB.Limit(form.Count).Find(&res, "url LIKE ?", fmt.Sprintf("%s%%", form.Path))
+		if ShouldReturn(c, result.Error) {
+			return
 		}
-		common.DB.Debug().Delete(&res, "id IN ?", idList)
+		if form.Consume {
+			var idList = make([]uint64, len(res))
+			for idx, raw := range res {
+				idList[idx] = raw.ID
+			}
+			common.DB.Debug().Delete(&res, "id IN ?", idList)
+		}
+		c.JSON(http.StatusOK, res)
+	} else {
+		var res []model.RawJSONData
+		result := common.DB.Limit(form.Count).Find(&res, "url LIKE ?", fmt.Sprintf("%s%%", form.Path))
+		if ShouldReturn(c, result.Error) {
+			return
+		}
+		if form.Consume {
+			var idList = make([]uint64, len(res))
+			for idx, raw := range res {
+				idList[idx] = raw.ID
+			}
+			common.DB.Debug().Delete(&res, "id IN ?", idList)
+		}
+		c.JSON(http.StatusOK, res)
 	}
-
-	c.JSON(http.StatusOK, res)
 }
 
 func Init(engine *gin.Engine) {

@@ -1,7 +1,9 @@
 package collector
 
 import (
+	"errors"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -33,6 +35,13 @@ func SaveData(targetUrl string, taskID uint64) {
 	defer func(Body io.ReadCloser) {
 		_ = Body.Close()
 	}(resp.Body)
+	if resp.StatusCode >= 300 {
+		log.Println(errors.New("status code error"))
+		return
+	}
 	data, _ := io.ReadAll(resp.Body)
-	_ = collector.SaveRawData(data, targetUrl, taskID)
+	err := collector.SaveRawData(data, targetUrl, taskID)
+	if err != nil {
+		log.Println(err)
+	}
 }
